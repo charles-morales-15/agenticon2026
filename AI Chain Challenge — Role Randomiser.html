@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<!-- saved from url=(0081)file:///C:/Users/charles.morales/Downloads/AIChainChallenge_RoleRandomiser_1.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Chain Challenge — Role Randomiser</title>
+<link rel="stylesheet" href="./AI Chain Challenge — Role Randomiser_files/tabler-icons.min.css">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#05080F;color:#CBD5E1;min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:2rem 1rem}
+  .container{width:100%;max-width:720px}
+
+  .app-header{margin-bottom:2rem;padding-bottom:1.25rem;border-bottom:0.5px solid rgba(255,255,255,.08)}
+  .app-header h1{font-size:22px;font-weight:700;color:#FFFFFF;letter-spacing:-.3px;margin-bottom:4px}
+  .app-header p{font-size:13px;color:#64748B}
+  .event-badge{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;letter-spacing:.08em;color:#00D4AA;background:rgba(0,212,170,.1);border:0.5px solid rgba(0,212,170,.3);border-radius:100px;padding:4px 12px;margin-bottom:.75rem}
+
+  .section-label{font-size:11px;font-weight:600;color:#64748B;letter-spacing:.08em;text-transform:uppercase;margin-bottom:.5rem}
+  .ind-grid{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1.5rem}
+  .ind-btn{font-size:12px;font-weight:500;padding:6px 14px;border-radius:100px;border:0.5px solid rgba(255,255,255,.15);background:rgba(255,255,255,.04);color:#94A3B8;cursor:pointer;transition:all .15s}
+  .ind-btn:hover{border-color:rgba(255,255,255,.3);color:#fff}
+  .ind-btn.active{border-color:transparent;color:#fff}
+  .ind-btn.active[data-ind="CMT"]{background:#0F6E56;border-color:#00D4AA}
+  .ind-btn.active[data-ind="PRD"]{background:#3C3489;border-color:#7C3AED}
+  .ind-btn.active[data-ind="FS"]{background:#0C447C;border-color:#0EA5E9}
+  .ind-btn.active[data-ind="RES"]{background:#633806;border-color:#F59E0B}
+  .ind-btn.active[data-ind="HPS"]{background:#173404;border-color:#10B981}
+
+  .names-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px;margin-bottom:1.5rem}
+  .name-row{display:flex;align-items:center;gap:8px}
+  .num{width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#64748B;flex-shrink:0}
+  .name-row input{flex:1;font-size:13px;padding:7px 10px;border:0.5px solid rgba(255,255,255,.1);border-radius:8px;background:rgba(255,255,255,.05);color:#FFFFFF}
+  .name-row input::placeholder{color:#475569}
+  .name-row input:focus{outline:none;border-color:rgba(255,255,255,.3);background:rgba(255,255,255,.08)}
+
+  .actions{display:flex;gap:10px;margin-bottom:1.75rem;flex-wrap:wrap}
+  .btn-assign{display:flex;align-items:center;gap:7px;padding:10px 22px;border-radius:8px;border:none;font-size:14px;font-weight:600;color:#fff;cursor:pointer;transition:opacity .15s}
+  .btn-assign:hover{opacity:.88}
+  .btn-reset{padding:10px 16px;border-radius:8px;border:0.5px solid rgba(255,255,255,.15);background:transparent;color:#94A3B8;font-size:14px;cursor:pointer;transition:all .15s}
+  .btn-reset:hover{background:rgba(255,255,255,.06);color:#fff}
+
+  /* Accordion */
+  .acc-toggle{display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;margin-bottom:1.5rem;padding:10px 14px;border:0.5px solid rgba(255,255,255,.1);border-radius:8px;background:rgba(255,255,255,.03);user-select:none;transition:background .15s}
+  .acc-toggle:hover{background:rgba(255,255,255,.06)}
+  .acc-toggle .hint{font-size:12px;color:#475569;margin-left:2px}
+  .acc-toggle .chev{transition:transform .2s;font-size:15px;margin-left:auto}
+  .acc-toggle.open .chev{transform:rotate(180deg)}
+  .acc-panel{display:none;margin-bottom:1.5rem}
+  .acc-panel.open{display:block}
+
+  /* Tabs */
+  .tab-bar{display:flex;gap:0;margin-bottom:1.25rem;border:0.5px solid rgba(255,255,255,.1);border-radius:8px;overflow:hidden}
+  .tab-btn{flex:1;padding:9px 6px;font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;text-align:center;cursor:pointer;background:rgba(255,255,255,.03);color:#64748B;border:none;border-right:0.5px solid rgba(255,255,255,.08);transition:all .15s}
+  .tab-btn:last-child{border-right:none}
+  .tab-btn:hover{background:rgba(255,255,255,.06);color:#CBD5E1}
+  .tab-btn.active{background:rgba(255,255,255,.09);color:#FFFFFF}
+  .tab-pane{display:none}
+  .tab-pane.active{display:block}
+
+  .mech-heading{font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;display:flex;align-items:center;gap:7px;margin-bottom:.75rem}
+
+  /* Timeline */
+  .timeline{display:flex;flex-direction:column}
+  .tl-row{display:flex}
+  .tl-spine{display:flex;flex-direction:column;align-items:center;width:68px;flex-shrink:0;padding-top:2px}
+  .tl-badge{font-size:10px;font-weight:800;padding:3px 7px;border-radius:100px;white-space:nowrap;border:0.5px solid;text-align:center}
+  .tl-vline{width:1px;flex:1;min-height:10px;margin-top:4px}
+  .tl-row:last-child .tl-vline{display:none}
+  .tl-body{padding:0 0 18px 12px}
+  .tl-phase{font-size:13px;font-weight:700;color:#FFFFFF;margin-bottom:4px}
+  .tl-detail{font-size:12px;color:#64748B;line-height:1.65}
+  .tl-detail ul{padding-left:14px;margin-top:5px}
+  .tl-detail li{margin-bottom:3px}
+  .tl-note{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:3px 9px;border-radius:100px;margin-top:6px;border:0.5px solid}
+
+  /* Tag cards */
+  .tag-banner{padding:11px 14px;border-radius:8px;background:rgba(248,113,113,.07);border:0.5px solid rgba(248,113,113,.22);border-left:3px solid #F87171;margin-bottom:1.25rem;font-size:12px;color:#F87171;line-height:1.65}
+
+  .tag-card{border-radius:10px;border:0.5px solid;overflow:hidden;margin-bottom:10px}
+  .tag-card-head{padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .tag-card-title{font-size:13px;font-weight:700;color:#FFFFFF}
+  .tag-card-badge{font-size:10px;font-weight:700;padding:2px 9px;border-radius:100px;white-space:nowrap}
+  .tag-card-body{padding:0 14px 14px}
+
+  .tag-format{font-family:monospace;font-size:13px;padding:11px 13px;border-radius:8px;background:rgba(0,0,0,.4);border:0.5px solid rgba(255,255,255,.07);line-height:2;word-break:break-word;margin-bottom:10px}
+  .tk{display:inline;border-radius:4px;padding:2px 7px;font-weight:700;font-size:12px}
+  .tv{color:#94A3B8;font-size:12px}
+
+  .eg-label{font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#475569;margin-bottom:5px}
+  .eg-box{font-family:monospace;font-size:11.5px;padding:10px 12px;border-radius:8px;border:0.5px solid;line-height:1.75;word-break:break-word;margin-bottom:10px}
+
+  .rules{display:flex;flex-direction:column;gap:5px}
+  .rule-row{display:flex;align-items:flex-start;gap:7px;font-size:11.5px;color:#64748B;line-height:1.5}
+  .rdot{width:4px;height:4px;border-radius:50%;flex-shrink:0;margin-top:5px}
+
+  /* Quick ref */
+  .qref{margin-top:6px;padding:13px 14px;border-radius:8px;background:rgba(255,255,255,.03);border:0.5px solid rgba(255,255,255,.07)}
+  .qref-title{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#64748B;margin-bottom:10px}
+  .qref-row{display:grid;grid-template-columns:auto 1fr auto;gap:5px 12px;align-items:center;padding:5px 0;border-bottom:0.5px solid rgba(255,255,255,.05)}
+  .qref-row:last-child{border-bottom:none}
+
+  /* Scoring */
+  .tier-stack{display:flex;flex-direction:column;gap:5px;margin-bottom:1.25rem}
+  .tier-row{display:flex;align-items:stretch;border-radius:8px;overflow:hidden;border:0.5px solid rgba(255,255,255,.07)}
+  .tier-pts{font-size:17px;font-weight:800;width:52px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.04)}
+  .tier-body{padding:8px 12px;flex:1;background:rgba(255,255,255,.025)}
+  .tier-name{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;margin-bottom:2px}
+  .tier-desc{font-size:12px;color:#64748B}
+
+  .hero-outcomes{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}
+  .ho{padding:10px;border-radius:8px;border:0.5px solid;text-align:center}
+  .ho-pts{font-size:18px;font-weight:800;margin-bottom:4px}
+  .ho-lbl{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:5px}
+  .ho-desc{font-size:11px;line-height:1.5}
+
+  .bonus-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  .bc{padding:11px 12px;border-radius:8px;border:0.5px solid rgba(255,255,255,.07);background:rgba(255,255,255,.025)}
+  .bc.full{grid-column:1/-1}
+  .bc-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:5px}
+  .bc-label{font-size:13px;font-weight:700;color:#FFFFFF}
+  .bc-pts{font-size:15px;font-weight:800;white-space:nowrap;flex-shrink:0}
+  .bc-desc{font-size:12px;color:#64748B;line-height:1.55}
+  .bc-rule{font-size:11px;margin-top:6px;padding:6px 9px;border-radius:6px;line-height:1.5}
+
+  /* Result */
+  .result-box{background:#0B1220;border:0.5px solid rgba(255,255,255,.1);border-radius:12px;overflow:hidden;display:none}
+  .result-header{padding:12px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:0.5px solid rgba(255,255,255,.08);gap:12px}
+  .result-title{font-size:13px;font-weight:600;color:#FFFFFF;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .copy-btn{display:flex;align-items:center;gap:5px;font-size:12px;padding:6px 14px;border-radius:6px;border:0.5px solid rgba(255,255,255,.15);background:transparent;color:#94A3B8;cursor:pointer;white-space:nowrap;transition:all .15s;flex-shrink:0}
+  .copy-btn:hover{background:rgba(255,255,255,.06);color:#fff}
+  .copy-btn.copied{border-color:#00D4AA;color:#00D4AA}
+  .role-list{padding:4px 0}
+  .role-item{display:flex;align-items:flex-start;gap:12px;padding:12px 16px;border-bottom:0.5px solid rgba(255,255,255,.05)}
+  .role-item:last-child{border-bottom:none}
+  .role-item:hover{background:rgba(255,255,255,.02)}
+  .role-icon{width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0;margin-top:2px}
+  .role-meta{flex:1;min-width:0}
+  .role-top{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:3px}
+  .role-lbl{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+  .copilot-tag{font-size:10px;font-weight:600;padding:2px 8px;border-radius:100px;background:rgba(16,185,129,.15);color:#10B981;border:0.5px solid rgba(16,185,129,.3);letter-spacing:.04em;white-space:nowrap}
+  .person{font-size:15px;font-weight:700;color:#FFFFFF;margin-bottom:4px}
+  .resp-list{display:flex;flex-direction:column;gap:3px;margin-top:4px}
+  .resp-row{display:flex;align-items:flex-start;gap:6px;font-size:12px;color:#64748B;line-height:1.45}
+  .resp-dot{width:4px;height:4px;border-radius:50%;flex-shrink:0;margin-top:5px}
+  .rule-bar{margin:12px 16px;padding:11px 13px;border-radius:8px;background:rgba(245,158,11,.07);border-left:3px solid #F59E0B;font-size:12px;color:#F59E0B;line-height:1.65}
+  .shuffle-note{font-size:12px;color:#334155;text-align:center;padding:8px 16px 14px}
+  .app-footer{margin-top:2rem;padding-top:1.25rem;border-top:0.5px solid rgba(255,255,255,.06);font-size:11px;color:#334155;text-align:center;letter-spacing:.04em}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="app-header">
+    <div class="event-badge"><i class="ti ti-device-gamepad-2" style="font-size:12px"></i>Agenticon 2026</div>
+    <h1>AI Chain Challenge</h1>
+    <p>Role Randomiser — enter team member names, assign roles instantly</p>
+  </div>
+
+  <div class="acc-toggle open" id="accToggle" onclick="toggleAcc()">
+    <i class="ti ti-info-circle" style="font-size:16px;color:#00D4AA"></i>
+    <span style="font-weight:600;color:#FFFFFF">Game Mechanics, Tagging &amp; Scoring</span>
+    <span class="hint">tap to collapse</span>
+    <i class="ti ti-chevron-down chev"></i>
+  </div>
+
+  <div class="acc-panel open" id="accPanel">
+    <div class="tab-bar">
+      <button class="tab-btn active" onclick="switchTab(this,&#39;flow&#39;)">Game Flow</button>
+      <button class="tab-btn" onclick="switchTab(this,&#39;tagging&#39;)">Tagging Rules</button>
+      <button class="tab-btn" onclick="switchTab(this,&#39;scoring&#39;)">Scoring</button>
+    </div>
+
+    <!-- ── TAB: GAME FLOW ─────────────────────────────────────── -->
+    <div class="tab-pane active" id="tab-flow">
+      <div class="timeline">
+
+        <div class="tl-row">
+          <div class="tl-spine">
+            <div class="tl-badge" style="color:#0EA5E9;border-color:rgba(14,165,233,.35);background:rgba(14,165,233,.1)">0–10 min</div>
+            <div class="tl-vline" style="background:rgba(14,165,233,.2)"></div>
+          </div>
+          <div class="tl-body">
+            <div class="tl-phase">Ideation Sprint + Hero Idea Submission</div>
+            <div class="tl-detail">Prompt Engineers generate AI use cases. Architect consolidates. DevOps submits continuously using the correct tag format.
+              <ul>
+                <li><strong style="color:#0EA5E9">Speed Bonus</strong> — first team to 5 valid submissions wins +15 pts (auto-tracked)</li>
+                <li>Developer identifies the Hero Idea — must be Agentic AI linking 2+ departments</li>
+                <li>DevOps submits Hero Idea with the <code style="background:rgba(0,212,170,.12);color:#00D4AA;padding:1px 5px;border-radius:4px">[HERO]</code> tag before minute 10</li>
+                <li><strong style="color:#F87171">No tag = no score.</strong> Missing or wrong format means the entry is disqualified</li>
+              </ul>
+              <span class="tl-note" style="color:#F87171;border-color:rgba(248,113,113,.3);background:rgba(248,113,113,.08)">
+                <i class="ti ti-clock-x" style="font-size:11px"></i> [HERO] tag submitted after min 10 is not eligible for the Power Up
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="tl-row">
+          <div class="tl-spine">
+            <div class="tl-badge" style="color:#7C3AED;border-color:rgba(124,58,237,.35);background:rgba(124,58,237,.1)">10–12 min</div>
+            <div class="tl-vline" style="background:rgba(124,58,237,.2)"></div>
+          </div>
+          <div class="tl-body">
+            <div class="tl-phase">Leaderboard Revealed — Review Window</div>
+            <div class="tl-detail">All tagged submissions become visible on the shared leaderboard. Sprint is closed — no new original ideas accepted.
+              <ul>
+                <li>Teams study rival submissions and identify ideas worth stealing</li>
+                <li>Developer picks which ideas can be genuinely improved</li>
+                <li>Facilitator announces Steal window opens at minute 12</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="tl-row">
+          <div class="tl-spine">
+            <div class="tl-badge" style="color:#F59E0B;border-color:rgba(245,158,11,.35);background:rgba(245,158,11,.1)">12–15 min</div>
+            <div class="tl-vline" style="background:rgba(245,158,11,.2)"></div>
+          </div>
+          <div class="tl-body">
+            <div class="tl-phase">Steal Window — Improve to Score</div>
+            <div class="tl-detail">Teams steal up to 3 rival ideas and resubmit improved versions. Each steal uses one Steal Power Up Card.
+              <ul>
+                <li>Must use the <code style="background:rgba(245,158,11,.12);color:#F59E0B;padding:1px 5px;border-radius:4px">[STOLEN from Team Name]</code> tag — missing tag = no ×3, scored as regular</li>
+                <li>Claude judges: genuinely better = <strong style="color:#F59E0B">×3 tier score</strong></li>
+                <li>Claude determines not better = <strong style="color:#F87171">0 score</strong> for that entry</li>
+                <li>Maximum 3 steals per team — one per Steal Power Up Card</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="tl-row">
+          <div class="tl-spine">
+            <div class="tl-badge" style="color:#10B981;border-color:rgba(16,185,129,.35);background:rgba(16,185,129,.1)">15+ min</div>
+            <div class="tl-vline" style="background:rgba(16,185,129,.2)"></div>
+          </div>
+          <div class="tl-body">
+            <div class="tl-phase">Claude Scores All Submissions</div>
+            <div class="tl-detail">Claude Operator pastes all entries. Claude validates tags, assigns tiers, applies Power Ups, and produces the final leaderboard.
+              <ul>
+                <li>Entries missing required tags are <strong style="color:#F87171">automatically disqualified — 0 points</strong></li>
+                <li>Hero Idea outcome applied — confirmed ×2 / rejected −5 / not submitted −10</li>
+                <li>Each steal judged — improved ×3 / not improved 0</li>
+                <li>Final leaderboard posted · Winner announced · Golden Idea revealed</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── TAB: TAGGING RULES ─────────────────────────────────── -->
+    <div class="tab-pane" id="tab-tagging">
+
+      <div class="tag-banner">
+        <i class="ti ti-ban" style="font-size:13px;vertical-align:-1px;margin-right:5px"></i>
+        <strong>Golden Rule: No proper tagging = no points. No exceptions, no appeals.</strong><br>
+        The DevOps Engineer applies every tag. The Architect checks format before passing entries to DevOps.
+      </div>
+
+      <!-- Regular idea -->
+      <div class="tag-card" style="border-color:rgba(14,165,233,.22)">
+        <div class="tag-card-head" style="background:rgba(14,165,233,.07)">
+          <div class="tag-card-title">Regular Idea</div>
+          <div class="tag-card-badge" style="background:rgba(14,165,233,.12);color:#0EA5E9;border:0.5px solid rgba(14,165,233,.25)">Standard entry · scored by tier</div>
+        </div>
+        <div class="tag-card-body">
+          <div class="tag-format">
+            <span class="tk" style="background:rgba(14,165,233,.18);color:#0EA5E9">[Team Name]</span>
+            <span class="tv"> &nbsp;idea description</span>
+          </div>
+          <div class="eg-label">Example</div>
+          <div class="eg-box" style="background:rgba(14,165,233,.04);border-color:rgba(14,165,233,.18);color:#94A3B8">
+            <span style="color:#0EA5E9">[Team Bandwidth]</span> AI-powered propensity scoring model that analyses real-time behavioural signals to identify high-intent prospects and trigger personalised offers automatically
+          </div>
+          <div class="rules">
+            <div class="rule-row"><div class="rdot" style="background:#0EA5E9"></div><span>Team name tag is mandatory — missing tag = 0 points, no exceptions</span></div>
+            <div class="rule-row"><div class="rdot" style="background:#0EA5E9"></div><span>Use your exact assigned team name as shown in the role assignment</span></div>
+            <div class="rule-row"><div class="rdot" style="background:#0EA5E9"></div><span>Tag must appear at the very start of the entry, before the idea description</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hero Idea -->
+      <div class="tag-card" style="border-color:rgba(0,212,170,.25)">
+        <div class="tag-card-head" style="background:rgba(0,212,170,.07)">
+          <div class="tag-card-title">Hero Idea</div>
+          <div class="tag-card-badge" style="background:rgba(0,212,170,.12);color:#00D4AA;border:0.5px solid rgba(0,212,170,.28)">Must submit before minute 10</div>
+        </div>
+        <div class="tag-card-body">
+          <div class="tag-format">
+            <span class="tk" style="background:rgba(14,165,233,.18);color:#0EA5E9">[Team Name]</span>
+            <span class="tv"> &nbsp;</span>
+            <span class="tk" style="background:rgba(0,212,170,.18);color:#00D4AA">[HERO]</span>
+            <span class="tv"> &nbsp;Agentic AI idea spanning 2+ departments</span>
+          </div>
+          <div class="eg-label">Example</div>
+          <div class="eg-box" style="background:rgba(0,212,170,.04);border-color:rgba(0,212,170,.2);color:#94A3B8">
+            <span style="color:#0EA5E9">[Team Bandwidth]</span> <span style="color:#00D4AA">[HERO]</span> Agentic AI system that monitors network anomaly signals in real time, autonomously correlates faults to affected customers, triggers personalised outage notifications, and schedules technician dispatch — all without human intervention, spanning Network Operations and Customer Experience
+          </div>
+          <div class="rules">
+            <div class="rule-row"><div class="rdot" style="background:#00D4AA"></div><span><strong style="color:#CBD5E1">[HERO]</strong> tag must appear after the team name — without it the entry scores as a regular idea only, no Power Up applied</span></div>
+            <div class="rule-row"><div class="rdot" style="background:#00D4AA"></div><span>The idea itself must describe Agentic AI behaviour and reference at least 2 departments — Claude checks this at scoring time</span></div>
+            <div class="rule-row"><div class="rdot" style="background:#00D4AA"></div><span>Must be submitted before minute 10 — late entries lose the Power Up but are still scored as regular ideas</span></div>
+            <div class="rule-row"><div class="rdot" style="background:#00D4AA"></div><span>One Hero Idea per team — if multiple <code style="font-size:11px;color:#00D4AA">[HERO]</code> entries are submitted, only the first is evaluated</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stolen idea -->
+      <div class="tag-card" style="border-color:rgba(245,158,11,.22)">
+        <div class="tag-card-head" style="background:rgba(245,158,11,.07)">
+          <div class="tag-card-title">Stolen Idea</div>
+          <div class="tag-card-badge" style="background:rgba(245,158,11,.12);color:#F59E0B;border:0.5px solid rgba(245,158,11,.28)">Steal window only · min 12–15</div>
+        </div>
+        <div class="tag-card-body">
+          <div class="tag-format">
+            <span class="tk" style="background:rgba(14,165,233,.18);color:#0EA5E9">[Team Name]</span>
+            <span class="tv"> &nbsp;</span>
+            <span class="tk" style="background:rgba(245,158,11,.18);color:#F59E0B">[STOLEN from Original Team Name]</span>
+            <span class="tv"> &nbsp;improved idea description</span>
+          </div>
+          <div class="eg-label">Example</div>
+          <div class="eg-box" style="background:rgba(245,158,11,.04);border-color:rgba(245,158,11,.2);color:#94A3B8">
+            <span style="color:#0EA5E9">[Team Bandwidth]</span> <span style="color:#F59E0B">[STOLEN from Team Latency]</span> Improved: AI billing anomaly engine that not only flags invoice errors before they are issued, but autonomously traces the root cause in the rating engine, corrects affected records, and reprocesses billing without human intervention — cutting the current 23-day revenue recognition lag to under 48 hours
+          </div>
+          <div class="rules">
+            <div class="rule-row"><div class="rdot" style="background:#F59E0B"></div><span><strong style="color:#CBD5E1">[STOLEN from Team Name]</strong> must name the exact team the idea came from — vague or missing tag = scored as regular, no ×3 multiplier</span></div>
+            <div class="rule-row"><div class="rdot" style="background:#F59E0B"></div><span>The improvement must be <strong style="color:#CBD5E1">substantively better</strong> — Claude judges this at scoring time</span></div>
+            <div class="rule-row"><div class="rdot" style="background:#F59E0B"></div><span>If Claude determines it is not better: <strong style="color:#F87171">0 score</strong> for that entry — no tier points, no multiplier</span></div>
+            <div class="rule-row"><div class="rdot" style="background:#F59E0B"></div><span>Maximum 3 steals per team — one per Steal Power Up Card</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick reference -->
+      <div class="qref">
+        <div class="qref-title">Tag Quick Reference</div>
+        <div class="qref-row">
+          <code style="background:rgba(14,165,233,.14);color:#0EA5E9;padding:2px 8px;border-radius:4px;font-size:11px">[Team Name]</code>
+          <span style="font-size:12px;color:#94A3B8">Required on every entry — use your exact assigned team name</span>
+          <span style="font-size:11px;font-weight:700;color:#F87171">REQUIRED</span>
+        </div>
+        <div class="qref-row">
+          <code style="background:rgba(0,212,170,.14);color:#00D4AA;padding:2px 8px;border-radius:4px;font-size:11px">[HERO]</code>
+          <span style="font-size:12px;color:#94A3B8">Hero Idea claim — comes after team tag · submit before min 10 · 1 per team</span>
+          <span style="font-size:11px;color:#64748B">Max 1</span>
+        </div>
+        <div class="qref-row">
+          <code style="background:rgba(245,158,11,.14);color:#F59E0B;padding:2px 8px;border-radius:4px;font-size:11px">[STOLEN from ...]</code>
+          <span style="font-size:12px;color:#94A3B8">Name the original team · steal window only (min 12–15) · must improve</span>
+          <span style="font-size:11px;color:#64748B">Max 3</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ── TAB: SCORING ───────────────────────────────────────── -->
+    <div class="tab-pane" id="tab-scoring">
+
+      <div style="margin-bottom:1.25rem">
+        <div class="mech-heading" style="color:#7C3AED"><i class="ti ti-chart-bar" style="font-size:14px"></i>Scoring Tiers — Applied to Every Valid Entry</div>
+        <div class="tier-stack">
+          <div class="tier-row">
+            <div class="tier-pts" style="color:#64748B">5</div>
+            <div class="tier-body"><div class="tier-name" style="color:#94A3B8">Tier 1 — Automation</div><div class="tier-desc">Automates a manual, repetitive task using AI</div></div>
+          </div>
+          <div class="tier-row">
+            <div class="tier-pts" style="color:#0EA5E9">10</div>
+            <div class="tier-body"><div class="tier-name" style="color:#0EA5E9">Tier 2 — Intelligence</div><div class="tier-desc">AI predicts, recommends, or classifies in real time</div></div>
+          </div>
+          <div class="tier-row">
+            <div class="tier-pts" style="color:#00D4AA">20</div>
+            <div class="tier-body"><div class="tier-name" style="color:#00D4AA">Tier 3 — Agentic AI</div><div class="tier-desc">An AI agent acts autonomously across systems end-to-end</div></div>
+          </div>
+          <div class="tier-row">
+            <div class="tier-pts" style="color:#7C3AED">35</div>
+            <div class="tier-body"><div class="tier-name" style="color:#7C3AED">Tier 4 — Transformative</div><div class="tier-desc">Reimagines an entire business process or revenue model with AI</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-bottom:1.25rem">
+        <div class="mech-heading" style="color:#00D4AA"><i class="ti ti-diamond" style="font-size:14px"></i>Hero Idea Power Up — Three Possible Outcomes</div>
+        <div style="font-size:12px;color:#64748B;margin-bottom:10px;line-height:1.65">
+          Every team <strong style="color:#FFFFFF">must attempt a Hero Idea</strong>. Tag it as <code style="background:rgba(0,212,170,.12);color:#00D4AA;padding:1px 6px;border-radius:4px">[HERO]</code> and submit before minute 10. The idea must describe <strong style="color:#00D4AA">Agentic AI</strong> behaviour that spans <strong style="color:#00D4AA">at least 2 departments</strong>.
+        </div>
+        <div class="hero-outcomes">
+          <div class="ho" style="border-color:rgba(0,212,170,.3);background:rgba(0,212,170,.06)">
+            <div class="ho-pts" style="color:#00D4AA">×2</div>
+            <div class="ho-lbl" style="color:#00D4AA">Confirmed</div>
+            <div class="ho-desc" style="color:#94A3B8">Claude verifies Agentic AI + 2 departments. Tier score on that entry is <strong style="color:#00D4AA">doubled</strong>.</div>
+          </div>
+          <div class="ho" style="border-color:rgba(248,113,113,.25);background:rgba(248,113,113,.05)">
+            <div class="ho-pts" style="color:#F87171">−5</div>
+            <div class="ho-lbl" style="color:#F87171">Rejected</div>
+            <div class="ho-desc" style="color:#94A3B8">Submitted with <code style="font-size:10px;color:#F87171">[HERO]</code> tag but criteria not met. <strong style="color:#F87171">−5 pts</strong> from final score.</div>
+          </div>
+          <div class="ho" style="border-color:rgba(100,116,139,.18);background:rgba(100,116,139,.04)">
+            <div class="ho-pts" style="color:#64748B">−10</div>
+            <div class="ho-lbl" style="color:#94A3B8">Not submitted</div>
+            <div class="ho-desc" style="color:#64748B">No <code style="font-size:10px;color:#64748B">[HERO]</code> tag before min 10. <strong style="color:#94A3B8">−10 pts.</strong> Always better to try than skip.</div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="mech-heading" style="color:#F59E0B"><i class="ti ti-bolt" style="font-size:14px"></i>Other Bonus Points</div>
+        <div class="bonus-grid">
+          <div class="bc">
+            <div class="bc-top"><div class="bc-label">⚡ Speed Bonus</div><div class="bc-pts" style="color:#0EA5E9">+15 pts</div></div>
+            <div class="bc-desc">First team to submit 5 correctly tagged entries during min 0–10. Untagged entries do not count toward the 5.</div>
+          </div>
+          <div class="bc">
+            <div class="bc-top"><div class="bc-label">🃏 The Steal</div><div class="bc-pts" style="color:#F59E0B">×3 or 0</div></div>
+            <div class="bc-desc">Steal + genuinely improve a rival idea during min 12–15. Must use correct <code style="font-size:11px;color:#F59E0B">[STOLEN from ...]</code> tag. Max 3 per team.</div>
+            <div class="bc-rule" style="background:rgba(245,158,11,.08);color:#F59E0B">Improved = ×3 tier score &nbsp;·&nbsp; Not improved = 0 score</div>
+          </div>
+          <div class="bc full">
+            <div class="bc-top"><div class="bc-label">✨ Golden Idea</div><div class="bc-pts" style="color:#F59E0B">+25 pts</div></div>
+            <div class="bc-desc">Claude's single highest-quality idea across all teams after scoring. Only one team wins this per game. Entry must be correctly tagged to be eligible. Revealed at the winner announcement.</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div><!-- end acc-panel -->
+
+  <!-- Industry selector -->
+  <p class="section-label">Select industry</p>
+  <div class="ind-grid">
+    <button class="ind-btn active" data-ind="CMT" onclick="setInd(this)">CMT — VoxNet Global</button>
+    <button class="ind-btn" data-ind="PRD" onclick="setInd(this)">PRD — NovaMake</button>
+    <button class="ind-btn" data-ind="FS" onclick="setInd(this)">FS — ClearVault</button>
+    <button class="ind-btn" data-ind="RES" onclick="setInd(this)">RES — VoltEdge</button>
+    <button class="ind-btn" data-ind="HPS" onclick="setInd(this)">H&amp;PS — LifeForge</button>
+  </div>
+
+  <p class="section-label">Team member names <span style="font-weight:400;color:#475569">(3 minimum · 12 maximum)</span></p>
+  <div class="names-grid" id="namesGrid"><div class="name-row"><div class="num">1</div><input type="text" id="n0" placeholder="Member 1" autocomplete="off"></div><div class="name-row"><div class="num">2</div><input type="text" id="n1" placeholder="Member 2" autocomplete="off"></div><div class="name-row"><div class="num">3</div><input type="text" id="n2" placeholder="Member 3" autocomplete="off"></div><div class="name-row"><div class="num">4</div><input type="text" id="n3" placeholder="Member 4" autocomplete="off"></div><div class="name-row"><div class="num">5</div><input type="text" id="n4" placeholder="Member 5" autocomplete="off"></div><div class="name-row"><div class="num">6</div><input type="text" id="n5" placeholder="Member 6" autocomplete="off"></div><div class="name-row"><div class="num">7</div><input type="text" id="n6" placeholder="Member 7" autocomplete="off"></div><div class="name-row"><div class="num">8</div><input type="text" id="n7" placeholder="Optional" autocomplete="off"></div><div class="name-row"><div class="num">9</div><input type="text" id="n8" placeholder="Optional" autocomplete="off"></div><div class="name-row"><div class="num">10</div><input type="text" id="n9" placeholder="Optional" autocomplete="off"></div><div class="name-row"><div class="num">11</div><input type="text" id="n10" placeholder="Optional" autocomplete="off"></div><div class="name-row"><div class="num">12</div><input type="text" id="n11" placeholder="Optional" autocomplete="off"></div></div>
+
+  <div class="actions">
+    <button class="btn-assign" id="assignBtn" style="background:#0F6E56" onclick="assignRoles()">
+      <i class="ti ti-shuffle" style="font-size:16px"></i>
+      Assign roles randomly
+    </button>
+    <button class="btn-reset" onclick="resetAll()">
+      <i class="ti ti-refresh" style="font-size:14px;margin-right:3px;vertical-align:-1px"></i>Reset
+    </button>
+  </div>
+
+  <div class="result-box" id="resultBox" style="display: block;">
+    <div class="result-header">
+      <span class="result-title" id="resultTitle">CMT · VoxNet Global — Role Assignment</span>
+      <button class="copy-btn" id="copyBtn" onclick="copyResult()">
+        <i class="ti ti-copy" style="font-size:13px"></i>
+        Copy for Teams chat
+      </button>
+    </div>
+    <div class="role-list" id="roleList"><div class="role-item">
+      <div class="role-icon" style="background:rgba(245,158,11,.12)">
+        <i class="ti ti-crown" style="color:#F59E0B"></i>
+      </div>
+      <div class="role-meta">
+        <div class="role-top">
+          <span class="role-lbl" style="color:#F59E0B">Delivery Lead</span>
+          
+        </div>
+        <div class="person">c</div>
+        <div class="resp-list"><div class="resp-row"><div class="resp-dot" style="background:#F59E0B;opacity:.5"></div><span>Sets the team's idea direction and strategy from minute 0</span></div><div class="resp-row"><div class="resp-dot" style="background:#F59E0B;opacity:.5"></div><span>Activates Power Up Cards — Speed Bonus, The Steal, Hero Idea</span></div><div class="resp-row"><div class="resp-dot" style="background:#F59E0B;opacity:.5"></div><span>Directs DevOps to add the [HERO] tag before minute 10</span></div><div class="resp-row"><div class="resp-dot" style="background:#F59E0B;opacity:.5"></div><span>Decides which rival ideas to steal and improve during min 12–15</span></div><div class="resp-row"><div class="resp-dot" style="background:#F59E0B;opacity:.5"></div><span>Has final decision authority on all team choices throughout the game</span></div></div>
+      </div></div><div class="role-item">
+      <div class="role-icon" style="background:rgba(14,165,233,.12)">
+        <i class="ti ti-terminal-2" style="color:#0EA5E9"></i>
+      </div>
+      <div class="role-meta">
+        <div class="role-top">
+          <span class="role-lbl" style="color:#0EA5E9">DevOps Engineer</span>
+          
+        </div>
+        <div class="person">k</div>
+        <div class="resp-list"><div class="resp-row"><div class="resp-dot" style="background:#0EA5E9;opacity:.5"></div><span>The ONLY team member authorised to submit entries to the form</span></div><div class="resp-row"><div class="resp-dot" style="background:#0EA5E9;opacity:.5"></div><span>Applies correct tags on EVERY entry — no tag means no score, no exceptions</span></div><div class="resp-row"><div class="resp-dot" style="background:#0EA5E9;opacity:.5"></div><span>Regular idea format: [Team Name] idea description</span></div><div class="resp-row"><div class="resp-dot" style="background:#0EA5E9;opacity:.5"></div><span>Hero Idea format: [Team Name] [HERO] idea description — before minute 10</span></div><div class="resp-row"><div class="resp-dot" style="background:#0EA5E9;opacity:.5"></div><span>Stolen idea format: [Team Name] [STOLEN from Original Team] improved idea — min 12–15</span></div></div>
+      </div></div><div class="role-item">
+      <div class="role-icon" style="background:rgba(124,58,237,.12)">
+        <i class="ti ti-building" style="color:#7C3AED"></i>
+      </div>
+      <div class="role-meta">
+        <div class="role-top">
+          <span class="role-lbl" style="color:#7C3AED">Architect</span>
+          
+        </div>
+        <div class="person">d</div>
+        <div class="resp-list"><div class="resp-row"><div class="resp-dot" style="background:#7C3AED;opacity:.5"></div><span>Collects raw ideas verbally from all Prompt Engineers throughout the sprint</span></div><div class="resp-row"><div class="resp-dot" style="background:#7C3AED;opacity:.5"></div><span>Consolidates and refines ideas into clear, submittable AI use case entries</span></div><div class="resp-row"><div class="resp-dot" style="background:#7C3AED;opacity:.5"></div><span>Checks that DevOps has the correct team name tag before every submission</span></div><div class="resp-row"><div class="resp-dot" style="background:#7C3AED;opacity:.5"></div><span>Removes duplicate or vague entries that would score low or be disqualified</span></div><div class="resp-row"><div class="resp-dot" style="background:#7C3AED;opacity:.5"></div><span>Passes finalised, tag-ready entries to DevOps for submission</span></div></div>
+      </div></div><div class="role-item">
+      <div class="role-icon" style="background:rgba(0,212,170,.12)">
+        <i class="ti ti-code" style="color:#00D4AA"></i>
+      </div>
+      <div class="role-meta">
+        <div class="role-top">
+          <span class="role-lbl" style="color:#00D4AA">Developer</span>
+          
+        </div>
+        <div class="person">f</div>
+        <div class="resp-list"><div class="resp-row"><div class="resp-dot" style="background:#00D4AA;opacity:.5"></div><span>Identifies the Hero Idea early — must be Agentic AI spanning 2+ departments</span></div><div class="resp-row"><div class="resp-dot" style="background:#00D4AA;opacity:.5"></div><span>Develops and strengthens the Hero Idea description before minute 10</span></div><div class="resp-row"><div class="resp-dot" style="background:#00D4AA;opacity:.5"></div><span>Advises Delivery Lead: confirmed = ×2, rejected = −5, not submitted = −10</span></div><div class="resp-row"><div class="resp-dot" style="background:#00D4AA;opacity:.5"></div><span>During steal window, ensures the improved version is substantively better</span></div><div class="resp-row"><div class="resp-dot" style="background:#00D4AA;opacity:.5"></div><span>Assesses Agentic AI criteria and cross-department scope on all Hero candidates</span></div></div>
+      </div></div><div class="role-item">
+      <div class="role-icon" style="background:rgba(248,113,113,.12)">
+        <i class="ti ti-bulb" style="color:#F87171"></i>
+      </div>
+      <div class="role-meta">
+        <div class="role-top">
+          <span class="role-lbl" style="color:#F87171">Prompt Engineer</span>
+          <span class="copilot-tag">Copilot eligible</span>
+        </div>
+        <div class="person">i</div>
+        <div class="resp-list"><div class="resp-row"><div class="resp-dot" style="background:#F87171;opacity:.5"></div><span>Primary idea generator — volume and creativity are the priority</span></div><div class="resp-row"><div class="resp-dot" style="background:#F87171;opacity:.5"></div><span>Generates AI use cases during min 0–10 focused on the assigned department</span></div><div class="resp-row"><div class="resp-dot" style="background:#F87171;opacity:.5"></div><span>Verbally pitches ideas to the Architect — does NOT submit to the form directly</span></div><div class="resp-row"><div class="resp-dot" style="background:#F87171;opacity:.5"></div><span>Flags ideas with clear Agentic AI potential to help Developer spot the Hero Idea</span></div><div class="resp-row"><div class="resp-dot" style="background:#F87171;opacity:.5"></div><span>First 3 Prompt Engineers are eligible to use Microsoft Copilot to assist</span></div></div>
+      </div></div><div class="role-item">
+      <div class="role-icon" style="background:rgba(248,113,113,.12)">
+        <i class="ti ti-bulb" style="color:#F87171"></i>
+      </div>
+      <div class="role-meta">
+        <div class="role-top">
+          <span class="role-lbl" style="color:#F87171">Prompt Engineer</span>
+          <span class="copilot-tag">Copilot eligible</span>
+        </div>
+        <div class="person">h</div>
+        <div class="resp-list"><div class="resp-row"><div class="resp-dot" style="background:#F87171;opacity:.5"></div><span>Primary idea generator — volume and creativity are the priority</span></div><div class="resp-row"><div class="resp-dot" style="background:#F87171;opacity:.5"></div><span>Generates AI use cases during min 0–10 focused on the assigned department</span></div><div class="resp-row"><div class="resp-dot" style="background:#F87171;opacity:.5"></div><span>Verbally pitches ideas to the Architect — does NOT submit to the form directly</span></div><div class="resp-row"><div class="resp-dot" style="background:#F87171;opacity:.5"></div><span>Flags ideas with clear Agentic AI potential to help Developer spot the Hero Idea</span></div><div class="resp-row"><div class="resp-dot" style="background:#F87171;opacity:.5"></div><span>First 3 Prompt Engineers are eligible to use Microsoft Copilot to assist</span></div></div>
+      </div></div><div class="role-item">
+      <div class="role-icon" style="background:rgba(248,113,113,.12)">
+        <i class="ti ti-bulb" style="color:#F87171"></i>
+      </div>
+      <div class="role-meta">
+        <div class="role-top">
+          <span class="role-lbl" style="color:#F87171">Prompt Engineer</span>
+          <span class="copilot-tag">Copilot eligible</span>
+        </div>
+        <div class="person">l</div>
+        <div class="resp-list"><div class="resp-row"><div class="resp-dot" style="background:#F87171;opacity:.5"></div><span>Primary idea generator — volume and creativity are the priority</span></div><div class="resp-row"><div class="resp-dot" style="background:#F87171;opacity:.5"></div><span>Generates AI use cases during min 0–10 focused on the assigned department</span></div><div class="resp-row"><div class="resp-dot" style="background:#F87171;opacity:.5"></div><span>Verbally pitches ideas to the Architect — does NOT submit to the form directly</span></div><div class="resp-row"><div class="resp-dot" style="background:#F87171;opacity:.5"></div><span>Flags ideas with clear Agentic AI potential to help Developer spot the Hero Idea</span></div><div class="resp-row"><div class="resp-dot" style="background:#F87171;opacity:.5"></div><span>First 3 Prompt Engineers are eligible to use Microsoft Copilot to assist</span></div></div>
+      </div></div><div class="role-item">
+      <div class="role-icon" style="background:rgba(248,113,113,.12)">
+        <i class="ti ti-bulb" style="color:#F87171"></i>
+      </div>
+      <div class="role-meta">
+        <div class="role-top">
+          <span class="role-lbl" style="color:#F87171">Prompt Engineer</span>
+          
+        </div>
+        <div class="person">e</div>
+        <div class="resp-list"><div class="resp-row"><div class="resp-dot" style="background:#F87171;opacity:.5"></div><span>Primary idea generator — volume and creativity are the priority</span></div><div class="resp-row"><div class="resp-dot" style="background:#F87171;opacity:.5"></div><span>Generates AI use cases during min 0–10 focused on the assigned department</span></div><div class="resp-row"><div class="resp-dot" style="background:#F87171;opacity:.5"></div><span>Verbally pitches ideas to the Architect — does NOT submit to the form directly</span></div><div class="resp-row"><div class="resp-dot" style="background:#F87171;opacity:.5"></div><span>Flags ideas with clear Agentic AI potential to help Developer spot the Hero Idea</span></div><div class="resp-row"><div class="resp-dot" style="background:#F87171;opacity:.5"></div><span>First 3 Prompt Engineers are eligible to use Microsoft Copilot to assist</span></div></div>
+      </div></div><div class="role-item">
+      <div class="role-icon" style="background:rgba(248,113,113,.12)">
+        <i class="ti ti-bulb" style="color:#F87171"></i>
+      </div>
+      <div class="role-meta">
+        <div class="role-top">
+          <span class="role-lbl" style="color:#F87171">Prompt Engineer</span>
+          
+        </div>
+        <div class="person">a</div>
+        <div class="resp-list"><div class="resp-row"><div class="resp-dot" style="background:#F87171;opacity:.5"></div><span>Primary idea generator — volume and creativity are the priority</span></div><div class="resp-row"><div class="resp-dot" style="background:#F87171;opacity:.5"></div><span>Generates AI use cases during min 0–10 focused on the assigned department</span></div><div class="resp-row"><div class="resp-dot" style="background:#F87171;opacity:.5"></div><span>Verbally pitches ideas to the Architect — does NOT submit to the form directly</span></div><div class="resp-row"><div class="resp-dot" style="background:#F87171;opacity:.5"></div><span>Flags ideas with clear Agentic AI potential to help Developer spot the Hero Idea</span></div><div class="resp-row"><div class="resp-dot" style="background:#F87171;opacity:.5"></div><span>First 3 Prompt Engineers are eligible to use Microsoft Copilot to assist</span></div></div>
+      </div></div><div class="role-item">
+      <div class="role-icon" style="background:rgba(248,113,113,.12)">
+        <i class="ti ti-bulb" style="color:#F87171"></i>
+      </div>
+      <div class="role-meta">
+        <div class="role-top">
+          <span class="role-lbl" style="color:#F87171">Prompt Engineer</span>
+          
+        </div>
+        <div class="person">g</div>
+        <div class="resp-list"><div class="resp-row"><div class="resp-dot" style="background:#F87171;opacity:.5"></div><span>Primary idea generator — volume and creativity are the priority</span></div><div class="resp-row"><div class="resp-dot" style="background:#F87171;opacity:.5"></div><span>Generates AI use cases during min 0–10 focused on the assigned department</span></div><div class="resp-row"><div class="resp-dot" style="background:#F87171;opacity:.5"></div><span>Verbally pitches ideas to the Architect — does NOT submit to the form directly</span></div><div class="resp-row"><div class="resp-dot" style="background:#F87171;opacity:.5"></div><span>Flags ideas with clear Agentic AI potential to help Developer spot the Hero Idea</span></div><div class="resp-row"><div class="resp-dot" style="background:#F87171;opacity:.5"></div><span>First 3 Prompt Engineers are eligible to use Microsoft Copilot to assist</span></div></div>
+      </div></div><div class="role-item">
+      <div class="role-icon" style="background:rgba(248,113,113,.12)">
+        <i class="ti ti-bulb" style="color:#F87171"></i>
+      </div>
+      <div class="role-meta">
+        <div class="role-top">
+          <span class="role-lbl" style="color:#F87171">Prompt Engineer</span>
+          
+        </div>
+        <div class="person">b</div>
+        <div class="resp-list"><div class="resp-row"><div class="resp-dot" style="background:#F87171;opacity:.5"></div><span>Primary idea generator — volume and creativity are the priority</span></div><div class="resp-row"><div class="resp-dot" style="background:#F87171;opacity:.5"></div><span>Generates AI use cases during min 0–10 focused on the assigned department</span></div><div class="resp-row"><div class="resp-dot" style="background:#F87171;opacity:.5"></div><span>Verbally pitches ideas to the Architect — does NOT submit to the form directly</span></div><div class="resp-row"><div class="resp-dot" style="background:#F87171;opacity:.5"></div><span>Flags ideas with clear Agentic AI potential to help Developer spot the Hero Idea</span></div><div class="resp-row"><div class="resp-dot" style="background:#F87171;opacity:.5"></div><span>First 3 Prompt Engineers are eligible to use Microsoft Copilot to assist</span></div></div>
+      </div></div><div class="role-item">
+      <div class="role-icon" style="background:rgba(248,113,113,.12)">
+        <i class="ti ti-bulb" style="color:#F87171"></i>
+      </div>
+      <div class="role-meta">
+        <div class="role-top">
+          <span class="role-lbl" style="color:#F87171">Prompt Engineer</span>
+          
+        </div>
+        <div class="person">j</div>
+        <div class="resp-list"><div class="resp-row"><div class="resp-dot" style="background:#F87171;opacity:.5"></div><span>Primary idea generator — volume and creativity are the priority</span></div><div class="resp-row"><div class="resp-dot" style="background:#F87171;opacity:.5"></div><span>Generates AI use cases during min 0–10 focused on the assigned department</span></div><div class="resp-row"><div class="resp-dot" style="background:#F87171;opacity:.5"></div><span>Verbally pitches ideas to the Architect — does NOT submit to the form directly</span></div><div class="resp-row"><div class="resp-dot" style="background:#F87171;opacity:.5"></div><span>Flags ideas with clear Agentic AI potential to help Developer spot the Hero Idea</span></div><div class="resp-row"><div class="resp-dot" style="background:#F87171;opacity:.5"></div><span>First 3 Prompt Engineers are eligible to use Microsoft Copilot to assist</span></div></div>
+      </div></div></div>
+    <div class="rule-bar">
+      <strong>Copilot rule:</strong> Only the 3 Prompt Engineers marked <strong>Copilot eligible</strong> may use Microsoft Copilot. <strong>Nobody uses Claude directly</strong> — Claude is the scoring engine for this team.
+    </div>
+    <p class="shuffle-note">Not happy with the draw? Click <strong>Assign roles randomly</strong> again to reshuffle.</p>
+  </div>
+
+  <div class="app-footer">AGENTICON 2026 &nbsp;·&nbsp; AI CHAIN CHALLENGE &nbsp;·&nbsp; VIRTUAL</div>
+</div>
+
+<script>
+const ROLES = [
+  {
+    id:"dl", label:"Delivery Lead", icon:"ti-crown", color:"#F59E0B", bg:"rgba(245,158,11,.12)", count:1,
+    responsibilities:[
+      "Sets the team's idea direction and strategy from minute 0",
+      "Activates Power Up Cards — Speed Bonus, The Steal, Hero Idea",
+      "Directs DevOps to add the [HERO] tag before minute 10",
+      "Decides which rival ideas to steal and improve during min 12–15",
+      "Has final decision authority on all team choices throughout the game"
+    ]
+  },
+  {
+    id:"dv", label:"DevOps Engineer", icon:"ti-terminal-2", color:"#0EA5E9", bg:"rgba(14,165,233,.12)", count:1,
+    responsibilities:[
+      "The ONLY team member authorised to submit entries to the form",
+      "Applies correct tags on EVERY entry — no tag means no score, no exceptions",
+      "Regular idea format: [Team Name] idea description",
+      "Hero Idea format: [Team Name] [HERO] idea description — before minute 10",
+      "Stolen idea format: [Team Name] [STOLEN from Original Team] improved idea — min 12–15"
+    ]
+  },
+  {
+    id:"ar", label:"Architect", icon:"ti-building", color:"#7C3AED", bg:"rgba(124,58,237,.12)", count:1,
+    responsibilities:[
+      "Collects raw ideas verbally from all Prompt Engineers throughout the sprint",
+      "Consolidates and refines ideas into clear, submittable AI use case entries",
+      "Checks that DevOps has the correct team name tag before every submission",
+      "Removes duplicate or vague entries that would score low or be disqualified",
+      "Passes finalised, tag-ready entries to DevOps for submission"
+    ]
+  },
+  {
+    id:"dev", label:"Developer", icon:"ti-code", color:"#00D4AA", bg:"rgba(0,212,170,.12)", count:1,
+    responsibilities:[
+      "Identifies the Hero Idea early — must be Agentic AI spanning 2+ departments",
+      "Develops and strengthens the Hero Idea description before minute 10",
+      "Advises Delivery Lead: confirmed = ×2, rejected = −5, not submitted = −10",
+      "During steal window, ensures the improved version is substantively better",
+      "Assesses Agentic AI criteria and cross-department scope on all Hero candidates"
+    ]
+  },
+  {
+    id:"pe", label:"Prompt Engineer", icon:"ti-bulb", color:"#F87171", bg:"rgba(248,113,113,.12)", count:3,
+    responsibilities:[
+      "Primary idea generator — volume and creativity are the priority",
+      "Generates AI use cases during min 0–10 focused on the assigned department",
+      "Verbally pitches ideas to the Architect — does NOT submit to the form directly",
+      "Flags ideas with clear Agentic AI potential to help Developer spot the Hero Idea",
+      "First 3 Prompt Engineers are eligible to use Microsoft Copilot to assist"
+    ]
+  }
+];
+
+const IND = {
+  CMT:{name:"VoxNet Global",        color:"#00D4AA", bg:"#0F6E56"},
+  PRD:{name:"NovaMake Industries",  color:"#7C3AED", bg:"#3C3489"},
+  FS: {name:"ClearVault Financial", color:"#0EA5E9", bg:"#0C447C"},
+  RES:{name:"VoltEdge Energy",      color:"#F59E0B", bg:"#633806"},
+  HPS:{name:"LifeForge Sciences",   color:"#10B981", bg:"#173404"},
+};
+
+let ind = "CMT", last = [];
+
+function toggleAcc() {
+  const t = document.getElementById("accToggle");
+  const p = document.getElementById("accPanel");
+  t.classList.toggle("open");
+  p.classList.toggle("open");
+  t.querySelector(".hint").textContent = t.classList.contains("open") ? "tap to collapse" : "tap to expand";
+}
+
+function switchTab(btn, id) {
+  document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+  document.querySelectorAll(".tab-pane").forEach(p => p.classList.remove("active"));
+  btn.classList.add("active");
+  document.getElementById("tab-" + id).classList.add("active");
+}
+
+function buildGrid() {
+  const g = document.getElementById("namesGrid");
+  g.innerHTML = "";
+  for (let i = 0; i < 12; i++) {
+    const d = document.createElement("div");
+    d.className = "name-row";
+    d.innerHTML = `<div class="num">${i+1}</div><input type="text" id="n${i}" placeholder="${i < 7 ? "Member " + (i+1) : "Optional"}" autocomplete="off">`;
+    g.appendChild(d);
+  }
+}
+
+function setInd(btn) {
+  ind = btn.dataset.ind;
+  document.querySelectorAll(".ind-btn").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+  document.getElementById("assignBtn").style.background = IND[ind].bg;
+  document.getElementById("resultBox").style.display = "none";
+}
+
+function getNames() {
+  const n = [];
+  for (let i = 0; i < 12; i++) {
+    const v = (document.getElementById("n" + i) || {}).value?.trim();
+    if (v) n.push(v);
+  }
+  return n;
+}
+
+function shuffle(a) {
+  const b = [...a];
+  for (let i = b.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [b[i], b[j]] = [b[j], b[i]];
+  }
+  return b;
+}
+
+function assignRoles() {
+  const names = getNames();
+  if (names.length < 3) { alert("Please enter at least 3 team member names."); return; }
+  const s = shuffle(names);
+  const pool = ROLES.flatMap(r => Array(r.count).fill(r.id));
+  const extra = Math.max(0, s.length - pool.length);
+  for (let i = 0; i < extra; i++) pool.push("pe");
+  last = s.map((name, i) => ({ name, roleId: pool[i] || "pe" }));
+  render();
+}
+
+function render() {
+  const list = document.getElementById("roleList");
+  document.getElementById("resultTitle").textContent = `${ind} · ${IND[ind].name} — Role Assignment`;
+  let pec = 0;
+  list.innerHTML = "";
+  last.forEach(({ name, roleId }) => {
+    const role = ROLES.find(r => r.id === roleId);
+    const isCopilot = roleId === "pe" && pec < 3;
+    if (roleId === "pe") pec++;
+    const respHTML = role.responsibilities.map(r =>
+      `<div class="resp-row"><div class="resp-dot" style="background:${role.color};opacity:.5"></div><span>${r}</span></div>`
+    ).join("");
+    const el = document.createElement("div");
+    el.className = "role-item";
+    el.innerHTML = `
+      <div class="role-icon" style="background:${role.bg}">
+        <i class="ti ${role.icon}" style="color:${role.color}"></i>
+      </div>
+      <div class="role-meta">
+        <div class="role-top">
+          <span class="role-lbl" style="color:${role.color}">${role.label}</span>
+          ${isCopilot ? '<span class="copilot-tag">Copilot eligible</span>' : ''}
+        </div>
+        <div class="person">${name}</div>
+        <div class="resp-list">${respHTML}</div>
+      </div>`;
+    list.appendChild(el);
+  });
+  document.getElementById("resultBox").style.display = "block";
+  document.getElementById("resultBox").scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+function copyResult() {
+  const icons = { dl:"👑", dv:"⚡", ar:"🏗️", dev:"💻", pe:"💡" };
+  const labels = { dl:"DELIVERY LEAD", dv:"DEVOPS ENGINEER", ar:"ARCHITECT", dev:"DEVELOPER", pe:"PROMPT ENGINEER" };
+  const respMap = {};
+  ROLES.forEach(r => { respMap[r.id] = r.responsibilities; });
+  let pec = 0;
+  let txt = `🎮 AI CHAIN CHALLENGE — ${ind} (${IND[ind].name})\n${"─".repeat(50)}\n`;
+  txt += `⏱  0–10 min: Sprint + Hero Idea  |  10–12 min: Review  |  12–15 min: Steal  |  15+ min: Scoring\n`;
+  txt += `${"─".repeat(50)}\n\n`;
+  txt += `🏷️  SUBMISSION TAGGING — NO TAG = NO POINTS\n\n`;
+  txt += `  Regular:  [Team Name] idea description\n`;
+  txt += `  Hero:     [Team Name] [HERO] idea description   ← before min 10\n`;
+  txt += `  Stolen:   [Team Name] [STOLEN from Team Name] improved idea   ← min 12–15\n`;
+  txt += `\n${"─".repeat(50)}\n`;
+  last.forEach(({ name, roleId }) => {
+    const isCopilot = roleId === "pe" && pec < 3;
+    if (roleId === "pe") pec++;
+    txt += `\n${icons[roleId]} ${labels[roleId]}: ${name}${isCopilot ? " ✅ Copilot eligible" : ""}\n`;
+    respMap[roleId].forEach(r => { txt += `   · ${r}\n`; });
+  });
+  txt += `\n${"─".repeat(50)}\n`;
+  txt += `💎 HERO: confirmed ×2  ·  rejected −5  ·  not submitted −10\n`;
+  txt += `🃏 STEAL: improved ×3  ·  not improved = 0 score\n`;
+  txt += `⚡ SPEED BONUS: first to 5 correctly tagged entries = +15 pts\n`;
+  txt += `⚠️  COPILOT: Only ✅ members may use Copilot. Nobody uses Claude — Claude scores YOU.`;
+  navigator.clipboard.writeText(txt).then(() => {
+    const b = document.getElementById("copyBtn");
+    b.innerHTML = '<i class="ti ti-check" style="font-size:13px"></i> Copied!';
+    b.classList.add("copied");
+    setTimeout(() => {
+      b.innerHTML = '<i class="ti ti-copy" style="font-size:13px"></i> Copy for Teams chat';
+      b.classList.remove("copied");
+    }, 2200);
+  }).catch(() => alert("Copy failed — try selecting and copying manually."));
+}
+
+function resetAll() {
+  buildGrid();
+  document.getElementById("resultBox").style.display = "none";
+}
+
+buildGrid();
+</script>
+
+
+</body></html>
