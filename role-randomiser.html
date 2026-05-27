@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<!-- saved from url=(0063)file:///C:/Users/charles.morales/Downloads/role-randomiser.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AI Chain Challenge — Role Randomiser</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#05080F;--surface:#0B1220;--surface2:#111B2D;
+  --border:rgba(255,255,255,.08);--border2:rgba(255,255,255,.14);
+  --text:#CBD5E1;--text2:#64748B;--text3:#94A3B8;
+  --teal:#00D4AA;--pink:#D4537E;--violet:#7F77DD;--amber:#F59E0B;--blue:#378ADD;
+  --green:#22C55E;
+  --r8:8px;--r12:12px;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:0 0 3rem}
+.header{text-align:center;padding:2rem 1rem 1.5rem}
+.header-badge{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:4px 14px;border-radius:100px;background:rgba(0,212,170,.1);border:.5px solid rgba(0,212,170,.3);color:var(--teal);margin-bottom:14px}
+.header h1{font-size:26px;font-weight:800;color:#FFF;letter-spacing:-.4px;margin-bottom:6px}
+.header p{font-size:13px;color:var(--text2)}
+.container{max-width:620px;margin:0 auto;padding:0 16px}
+.sec-label{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text2);margin-bottom:10px}
+
+/* ── ROLE CARDS ─────────────────────────────────────────────── */
+.role-section{margin-bottom:1.5rem}
+.role-grid-top{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:9px}
+.role-grid-bot{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}
+.role-card{border-radius:var(--r12);border:.5px solid var(--border);background:var(--surface);padding:12px 13px}
+.role-card-top{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.role-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.role-name{font-size:12px;font-weight:700;color:#FFF;line-height:1.2}
+.role-count{font-size:10px;font-weight:600;margin-top:2px}
+.role-bullets{display:flex;flex-direction:column;gap:3px}
+.role-bullet{font-size:10px;color:var(--text3);line-height:1.4;padding-left:10px;position:relative}
+.role-bullet::before{content:'·';position:absolute;left:2px;color:var(--text2)}
+.pe-highlight{border-color:rgba(0,164,211,.3);background:linear-gradient(135deg,rgba(0,164,211,.07),rgba(0,212,170,.03))}
+.copilot-note{font-size:10px;color:#38BDF8;font-weight:600;margin-top:7px;padding:5px 8px;background:rgba(0,164,211,.1);border-radius:6px;border:.5px solid rgba(0,164,211,.25)}
+
+/* ── TOOLS ───────────────────────────────────────────────────── */
+.tools-section{margin-bottom:1.5rem}
+.tools-row{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.tool-card{border-radius:var(--r12);border:.5px solid var(--border);background:var(--surface);padding:12px 13px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:7px}
+.tool-logo{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden}
+.tool-name{font-size:12px;font-weight:700;color:#FFF}
+.tool-use{font-size:10px;color:var(--text2);line-height:1.45}
+.tool-tag{font-size:9px;font-weight:700;letter-spacing:.07em;padding:2px 8px;border-radius:100px;margin-top:2px}
+
+/* ── INPUTS ──────────────────────────────────────────────────── */
+.input-section{margin-bottom:1rem}
+.name-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin-bottom:12px}
+.name-row{display:flex;align-items:center;gap:7px}
+.name-num{width:18px;font-size:11px;color:var(--text2);text-align:right;flex-shrink:0}
+.name-input{flex:1;padding:7px 10px;background:rgba(255,255,255,.04);border:.5px solid var(--border);border-radius:var(--r8);color:#FFF;font-size:13px;font-family:inherit;outline:none;transition:border-color .15s}
+.name-input:focus{border-color:rgba(255,255,255,.2);background:rgba(255,255,255,.06)}
+.name-input::placeholder{color:var(--text2)}
+
+/* ── BUTTONS ─────────────────────────────────────────────────── */
+.btn-row{display:flex;gap:8px;margin-bottom:1.5rem}
+.btn-primary{flex:1;padding:11px;background:var(--teal);color:#05080F;border:none;border-radius:var(--r8);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:filter .15s}
+.btn-primary:hover{filter:brightness(1.1)}
+.btn-primary:active{transform:scale(.98)}
+.btn-reset{padding:11px 18px;background:transparent;border:.5px solid var(--border2);border-radius:var(--r8);color:var(--text2);font-size:13px;font-family:inherit;cursor:pointer;transition:all .15s}
+.btn-reset:hover{background:rgba(255,255,255,.05);color:var(--text)}
+
+/* ── RESULT ──────────────────────────────────────────────────── */
+.result{display:none}
+.result.show{display:block}
+.result-header{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;background:var(--surface);border:.5px solid var(--border);border-radius:var(--r12) var(--r12) 0 0;border-bottom:none}
+.result-title{font-size:13px;font-weight:700;color:#FFF}
+.copy-btn{padding:5px 12px;background:transparent;border:.5px solid var(--border2);border-radius:6px;color:var(--text2);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s}
+.copy-btn:hover{background:rgba(255,255,255,.06);color:var(--text)}
+.copy-btn.copied{color:var(--green);border-color:rgba(34,197,94,.4)}
+.result-cards{border:.5px solid var(--border);border-radius:0 0 var(--r12) var(--r12);overflow:hidden}
+.rcard{display:flex;align-items:flex-start;gap:12px;padding:11px 14px;border-top:.5px solid var(--border)}
+.rcard:first-child{border-top:none}
+.rcard-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;margin-top:1px}
+.rcard-body{flex:1;min-width:0}
+.rcard-role{font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;margin-bottom:2px}
+.rcard-name{font-size:17px;font-weight:700;color:#FFF;margin-bottom:4px}
+.rcard-badges{display:flex;flex-wrap:wrap;gap:5px}
+.copilot-pill{font-size:10px;padding:2px 8px;border-radius:100px;font-weight:600;background:rgba(0,164,211,.15);color:#38BDF8;border:.5px solid rgba(0,164,211,.3)}
+.shuffle-note{font-size:11px;color:var(--text2);text-align:center;margin-top:10px}
+.copilot-rule{font-size:11px;color:var(--text2);text-align:center;margin-top:6px;padding:8px 12px;background:rgba(0,164,211,.06);border:.5px solid rgba(0,164,211,.15);border-radius:var(--r8)}
+.footer{text-align:center;font-size:10px;font-weight:600;letter-spacing:.1em;color:var(--text2);text-transform:uppercase;margin-top:2.5rem;padding-bottom:1rem}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-badge">ATCP SA Agenticon 2026</div>
+  <h1>AI Chain Challenge</h1>
+  <p>Role Randomiser — enter team member names, assign roles instantly</p>
+</div>
+
+<div class="container">
+
+  <!-- ROLE CARDS -->
+  <div class="role-section">
+    <div class="sec-label">Team Roles</div>
+    <div class="role-grid-top">
+      <div class="role-card">
+        <div class="role-card-top">
+          <div class="role-icon" style="background:rgba(0,212,170,.15)">🎯</div>
+          <div><div class="role-name">Delivery Lead</div><div class="role-count" style="color:var(--teal)">× 1</div></div>
+        </div>
+        <div class="role-bullets">
+          <div class="role-bullet">Sets team direction &amp; strategy</div>
+          <div class="role-bullet">Activates Power Up Cards</div>
+          <div class="role-bullet">Decides which ideas to steal</div>
+          <div class="role-bullet">Final decision authority</div>
+        </div>
+      </div>
+      <div class="role-card">
+        <div class="role-card-top">
+          <div class="role-icon" style="background:rgba(212,83,126,.15)">⌨️</div>
+          <div><div class="role-name">DevOps Engineer</div><div class="role-count" style="color:var(--pink)">× 1</div></div>
+        </div>
+        <div class="role-bullets">
+          <div class="role-bullet"><strong style="color:#FFF">Only</strong> member who submits</div>
+          <div class="role-bullet">Applies correct tags every entry</div>
+          <div class="role-bullet">No tag = no score, no exceptions</div>
+          <div class="role-bullet">Manages the submission form</div>
+        </div>
+      </div>
+      <div class="role-card">
+        <div class="role-card-top">
+          <div class="role-icon" style="background:rgba(127,119,221,.15)">🏗️</div>
+          <div><div class="role-name">Architect</div><div class="role-count" style="color:var(--violet)">× 1</div></div>
+        </div>
+        <div class="role-bullets">
+          <div class="role-bullet">Collects ideas from all PEs</div>
+          <div class="role-bullet">Refines ideas before submission</div>
+          <div class="role-bullet">Checks tags before DevOps submits</div>
+          <div class="role-bullet">Removes weak/duplicate entries</div>
+        </div>
+      </div>
+    </div>
+    <div class="role-grid-bot">
+      <div class="role-card">
+        <div class="role-card-top">
+          <div class="role-icon" style="background:rgba(245,158,11,.15)">💡</div>
+          <div><div class="role-name">Developer</div><div class="role-count" style="color:var(--amber)">× 1</div></div>
+        </div>
+        <div class="role-bullets">
+          <div class="role-bullet">Identifies the Hero Idea early</div>
+          <div class="role-bullet">Ensures it's Agentic AI, 2+ depts</div>
+          <div class="role-bullet">Develops Hero description before min 10</div>
+          <div class="role-bullet">Judges stolen idea improvements</div>
+        </div>
+      </div>
+      <div class="role-card pe-highlight">
+        <div class="role-card-top">
+          <div class="role-icon" style="background:rgba(0,164,211,.15)">🧠</div>
+          <div><div class="role-name" style="color:#38BDF8">Prompt Engineer</div><div class="role-count" style="color:#38BDF8">× 3–8</div></div>
+        </div>
+        <div class="role-bullets">
+          <div class="role-bullet">Primary idea generator</div>
+          <div class="role-bullet">Pitches verbally to the Architect</div>
+          <div class="role-bullet"><strong style="color:#FFF">Does NOT</strong> submit to the form</div>
+          <div class="role-bullet">Flags Agentic AI ideas to Developer</div>
+        </div>
+        <div class="copilot-note">🤖 Only the <strong>first 3 Prompt Engineers</strong> drawn are eligible to use Microsoft Copilot</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ALLOWED TOOLS -->
+  <div class="tools-section">
+    <div class="sec-label">Allowed Tools</div>
+    <div class="tools-row">
+
+      <!-- MS Teams -->
+      <div class="tool-card">
+        <div class="tool-logo" style="background:#5059C9">
+          <svg width="28" height="28" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M20 8a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0Z" fill="white"></path>
+            <path d="M24 10a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Z" fill="rgba(255,255,255,.75)"></path>
+            <path d="M9 16c0-1.66 1.34-3 3-3h8c1.66 0 3 1.34 3 3v6H9v-6Z" fill="white"></path>
+            <path d="M22 14h3a2 2 0 0 1 2 2v5h-5v-7Z" fill="rgba(255,255,255,.7)"></path>
+            <rect x="8" y="21" width="11" height="2" rx="1" fill="rgba(255,255,255,.35)"></rect>
+          </svg>
+        </div>
+        <div class="tool-name">MS Teams</div>
+        <div class="tool-use">Official communication channel for the event</div>
+        <div class="tool-tag" style="background:rgba(80,89,201,.2);color:#818CF8;border:.5px solid rgba(80,89,201,.3)">COMMUNICATION</div>
+      </div>
+
+      <!-- Microsoft Copilot — official logo -->
+      <div class="tool-card">
+        <div class="tool-logo" style="background:#1A1A2E">
+          <svg width="28" height="28" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Copilot sparkle: 4-pointed star shape, official Microsoft Copilot colors -->
+            <path d="M16 3 C16 3 13.5 10 16 16 C18.5 10 16 3 16 3Z" fill="#2563EB"></path>
+            <path d="M29 16 C29 16 22 13.5 16 16 C22 18.5 29 16 29 16Z" fill="#7C3AED"></path>
+            <path d="M16 29 C16 29 18.5 22 16 16 C13.5 22 16 29 16 29Z" fill="#00B4D8"></path>
+            <path d="M3 16 C3 16 10 18.5 16 16 C10 13.5 3 16 3 16Z" fill="#0EA5E9"></path>
+            <!-- Small secondary sparkle top-right -->
+            <path d="M24 7 C24 7 22.8 10 24 12 C25.2 10 24 7 24 7Z" fill="#7C3AED" opacity=".7"></path>
+            <path d="M29 12 C29 12 26 11 24 12 C26 13 29 12 29 12Z" fill="#2563EB" opacity=".7"></path>
+            <circle cx="16" cy="16" r="2.5" fill="white" opacity=".9"></circle>
+          </svg>
+        </div>
+        <div class="tool-name">Copilot</div>
+        <div class="tool-use">Idea generation — first 3 Prompt Engineers only</div>
+        <div class="tool-tag" style="background:rgba(0,180,216,.15);color:#38BDF8;border:.5px solid rgba(0,180,216,.3)">PE × 3 ONLY</div>
+      </div>
+
+      <!-- Microsoft Edge — official wave logo -->
+      <div class="tool-card">
+        <div class="tool-logo" style="background:#fff">
+          <svg width="30" height="30" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <lineargradient id="eGrad1" x1="5" y1="5" x2="27" y2="27" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#0F4C81"></stop>
+                <stop offset="0.5" stop-color="#0078D4"></stop>
+                <stop offset="1" stop-color="#1DAADC"></stop>
+              </lineargradient>
+              <lineargradient id="eGrad2" x1="8" y1="16" x2="28" y2="28" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#1DAADC"></stop>
+                <stop offset="1" stop-color="#38BDF8" stop-opacity="0.6"></stop>
+              </lineargradient>
+            </defs>
+            <!-- Main body — Edge wave shape -->
+            <path d="M5 17C5 11.5 9.5 7 15 7C18.3 7 21.2 8.5 23.1 11C21.7 9.8 19.9 9 18 9C13.6 9 10 12.6 10 17C10 19.3 11 21.3 12.6 22.7C8.2 21.1 5 19.3 5 17Z" fill="url(#eGrad1)"></path>
+            <!-- Wave sweep across bottom -->
+            <path d="M13 22.8C14.3 24.1 16 25 18 25C22.4 25 26 21.4 26 17C26 14.5 24.9 12.3 23.1 11C23.8 12.2 24.2 13.6 24.2 15.1C24.2 19.2 21.1 22.6 17.1 23C15.6 23.1 14.2 23 13 22.8Z" fill="url(#eGrad2)"></path>
+          </svg>
+        </div>
+        <div class="tool-name">Microsoft Edge</div>
+        <div class="tool-use">Submit ideas via the Submission Form</div>
+        <div class="tool-tag" style="background:rgba(29,170,220,.15);color:#7DD3FC;border:.5px solid rgba(29,170,220,.3)">SUBMISSION</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- NAME INPUTS -->
+  <div class="input-section">
+    <div class="sec-label">Team member names (3 minimum · 12 maximum)</div>
+    <div class="name-grid" id="nameGrid"><div class="name-row">
+        <span class="name-num">1</span>
+        <input class="name-input" id="n0" type="text" autocomplete="off" placeholder="Name 1">
+      </div><div class="name-row">
+        <span class="name-num">2</span>
+        <input class="name-input" id="n1" type="text" autocomplete="off" placeholder="Name 2">
+      </div><div class="name-row">
+        <span class="name-num">3</span>
+        <input class="name-input" id="n2" type="text" autocomplete="off" placeholder="Name 3">
+      </div><div class="name-row">
+        <span class="name-num">4</span>
+        <input class="name-input" id="n3" type="text" autocomplete="off" placeholder="Name 4">
+      </div><div class="name-row">
+        <span class="name-num">5</span>
+        <input class="name-input" id="n4" type="text" autocomplete="off" placeholder="Name 5">
+      </div><div class="name-row">
+        <span class="name-num">6</span>
+        <input class="name-input" id="n5" type="text" autocomplete="off" placeholder="Name 6">
+      </div><div class="name-row">
+        <span class="name-num">7</span>
+        <input class="name-input" id="n6" type="text" autocomplete="off" placeholder="Name 7">
+      </div><div class="name-row">
+        <span class="name-num">8</span>
+        <input class="name-input" id="n7" type="text" autocomplete="off" placeholder="Name 8">
+      </div><div class="name-row">
+        <span class="name-num">9</span>
+        <input class="name-input" id="n8" type="text" autocomplete="off" placeholder="Name 9">
+      </div><div class="name-row">
+        <span class="name-num">10</span>
+        <input class="name-input" id="n9" type="text" autocomplete="off" placeholder="Name 10">
+      </div><div class="name-row">
+        <span class="name-num">11</span>
+        <input class="name-input" id="n10" type="text" autocomplete="off" placeholder="Name 11">
+      </div><div class="name-row">
+        <span class="name-num">12</span>
+        <input class="name-input" id="n11" type="text" autocomplete="off" placeholder="Name 12">
+      </div></div>
+  </div>
+
+  <!-- BUTTONS -->
+  <div class="btn-row">
+    <button class="btn-primary" onclick="assign()">⚡ Assign roles randomly</button>
+    <button class="btn-reset" onclick="resetAll()">Reset</button>
+  </div>
+
+  <!-- RESULT -->
+  <div class="result" id="result">
+    <div class="result-header">
+      <div class="result-title">Role Assignment</div>
+      <button class="copy-btn" id="copyBtn" onclick="copyTeams()">Copy for Teams chat</button>
+    </div>
+    <div class="result-cards" id="resultCards"></div>
+    <div class="copilot-rule">🤖 Only Copilot-eligible Prompt Engineers may use Microsoft Copilot. Nobody uses Claude directly — Claude is the scoring engine.</div>
+    <div class="shuffle-note">Not happy with the draw? Click <strong style="color:#CBD5E1">Assign roles randomly</strong> again to reshuffle.</div>
+  </div>
+
+  <div class="footer">ATCP SA Agenticon 2026 · AI Chain Challenge · Virtual</div>
+</div>
+
+<script>
+// Auto-reset every page open
+window.addEventListener('load', resetAll);
+
+// Build name grid
+function buildGrid(){
+  document.getElementById('nameGrid').innerHTML =
+    Array.from({length:12},(_,i)=>
+      `<div class="name-row">
+        <span class="name-num">${i+1}</span>
+        <input class="name-input" id="n${i}" type="text" autocomplete="off" placeholder="Name ${i+1}">
+      </div>`
+    ).join('');
+}
+buildGrid();
+
+// Role definitions — use roleName (not name) to avoid collision with personName
+const ROLES = [
+  {
+    id:'dl', roleName:'Delivery Lead', emoji:'🎯',
+    color:'#00D4AA', bg:'rgba(0,212,170,.15)',
+    bullets:[
+      'Sets team direction & strategy from minute 0',
+      'Activates Power Up Cards — Speed Bonus, The Steal, Hero Idea',
+      'Directs DevOps to add [HERO] tag before minute 10',
+      'Decides which rival ideas to steal and improve'
+    ]
+  },
+  {
+    id:'do', roleName:'DevOps Engineer', emoji:'⌨️',
+    color:'#D4537E', bg:'rgba(212,83,126,.15)',
+    bullets:[
+      'The ONLY member authorised to submit entries to the form',
+      'Applies correct tags on every entry — no tag = no score',
+      'Regular: [Team Name] idea · Hero: [Team Name] [HERO] idea',
+      'Steal: [Team Name] [STOLEN from Team X] improved idea'
+    ]
+  },
+  {
+    id:'ar', roleName:'Architect', emoji:'🏗️',
+    color:'#7F77DD', bg:'rgba(127,119,221,.15)',
+    bullets:[
+      'Collects raw ideas verbally from all Prompt Engineers',
+      'Consolidates and refines ideas into submittable entries',
+      'Checks team name tag format before every submission',
+      'Removes duplicate or weak entries before they reach DevOps'
+    ]
+  },
+  {
+    id:'dv', roleName:'Developer', emoji:'💡',
+    color:'#F59E0B', bg:'rgba(245,158,11,.15)',
+    bullets:[
+      'Identifies the Hero Idea early — Agentic AI, 2+ departments',
+      'Develops and strengthens the Hero description before min 10',
+      'Advises: confirmed ×2 · rejected −5 · not submitted −10',
+      'Ensures stolen ideas are substantively better during steal window'
+    ]
+  },
+  {
+    id:'pe', roleName:'Prompt Engineer', emoji:'🧠',
+    color:'#38BDF8', bg:'rgba(0,164,211,.15)',
+    bullets:[
+      'Primary idea generator — volume and creativity are the priority',
+      'Verbally pitches ideas to the Architect, does NOT submit directly',
+      'Focused on assigned department AI use cases',
+      'Flags Agentic AI ideas with cross-department potential'
+    ]
+  }
+];
+
+// Assign roles
+function assign(){
+  const names = Array.from({length:12},(_,i)=>{
+    const el = document.getElementById('n'+i);
+    return el ? el.value.trim() : '';
+  }).filter(Boolean);
+
+  if(names.length < 3){
+    alert('Please enter at least 3 team member names.');
+    return;
+  }
+
+  // Shuffle
+  const shuffled = [...names].sort(()=>Math.random()-.5);
+
+  // Build ordered role list: DL, DevOps, Architect, Developer, then PEs
+  const peCount = Math.max(0, shuffled.length - 4);
+  const roleIds = ['dl','do','ar','dv', ...Array(peCount).fill('pe')];
+
+  let pesSeen = 0;
+  const assignment = shuffled.map((personName, i) => {
+    const role = ROLES.find(r => r.id === roleIds[i]) || ROLES[4];
+    const isPE = role.id === 'pe';
+    const copilot = isPE && (pesSeen++ < 3);
+    return { ...role, personName, copilot };
+    // Note: spread copies roleName etc. — personName is a NEW key so no collision
+  });
+
+  renderResult(assignment);
+}
+
+// Render result cards
+function renderResult(list){
+  const cards = document.getElementById('resultCards');
+
+  cards.innerHTML = list.map(a => `
+    <div class="rcard">
+      <div class="rcard-icon" style="background:${a.bg}">${a.emoji}</div>
+      <div class="rcard-body">
+        <div class="rcard-role" style="color:${a.color}">${a.roleName}</div>
+        <div class="rcard-name">${a.personName}</div>
+        <div class="rcard-badges">
+          ${a.bullets.slice(0,1).map(b=>`<span style="font-size:10px;color:#64748B">${b}</span>`).join('')}
+          ${a.copilot ? '<span class="copilot-pill">🤖 Copilot eligible</span>' : ''}
+        </div>
+      </div>
+    </div>`).join('');
+
+  document.getElementById('result').classList.add('show');
+  document.getElementById('copyBtn').textContent = 'Copy for Teams chat';
+  document.getElementById('copyBtn').classList.remove('copied');
+}
+
+// Copy to Teams
+function copyTeams(){
+  const items = document.querySelectorAll('.rcard');
+  if(!items.length) return;
+
+  let text = '🎯 AI Chain Challenge — Role Assignment\n';
+  text += '─────────────────────────\n';
+  items.forEach(item => {
+    const role = item.querySelector('.rcard-role').textContent;
+    const name = item.querySelector('.rcard-name').textContent;
+    const pill = item.querySelector('.copilot-pill');
+    text += `${role}: ${name}${pill ? ' 🤖 (Copilot eligible)' : ''}\n`;
+  });
+  text += '\n⚠️ Only Copilot-eligible Prompt Engineers may use Copilot.\nNobody uses Claude directly — Claude is the scoring engine.\n\n📋 Submission Form: https://charles-morales-15.github.io/agenticon2026/';
+
+  navigator.clipboard.writeText(text)
+    .then(()=>{
+      const btn = document.getElementById('copyBtn');
+      btn.textContent = '✓ Copied!';
+      btn.classList.add('copied');
+      setTimeout(()=>{ btn.textContent='Copy for Teams chat'; btn.classList.remove('copied'); }, 2500);
+    })
+    .catch(()=>alert('Copy failed — please copy manually.'));
+}
+
+// Reset
+function resetAll(){
+  Array.from({length:12},(_,i)=>{
+    const el = document.getElementById('n'+i);
+    if(el) el.value = '';
+  });
+  document.getElementById('result').classList.remove('show');
+  document.getElementById('resultCards').innerHTML = '';
+}
+</script>
+
+
+</body></html>
