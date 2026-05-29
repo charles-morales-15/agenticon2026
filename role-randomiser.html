@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AI Chain Challenge — Role Randomiser</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#05080F;--s1:#0B1220;--s2:#111B2D;
+  --bd:rgba(255,255,255,.08);--bd2:rgba(255,255,255,.15);
+  --tx:#CBD5E1;--tx2:#64748B;--tx3:#94A3B8;
+  --teal:#00D4AA;--pink:#D4537E;--violet:#7F77DD;
+  --amber:#F59E0B;--blue:#378ADD;--green:#22C55E;--red:#E24B4A;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;padding:0 0 4rem}
+button,select,input{font-family:inherit}
+
+/* ── THEME TOGGLE ─────────────────────────────────────────────────── */
+.theme-toggle{position:fixed;top:12px;right:14px;z-index:10000;display:flex;align-items:center;gap:5px;padding:5px 11px;border-radius:100px;background:rgba(255,255,255,.08);border:.5px solid rgba(255,255,255,.18);cursor:pointer;font-size:12px;font-weight:600;color:#94A3B8;transition:all .2s;font-family:inherit}
+.theme-toggle:hover{background:rgba(255,255,255,.14);color:var(--tx)}
+
+/* ── HEADER ───────────────────────────────────────────────────────── */
+.header{text-align:center;padding:2rem 1rem 1.5rem}
+.header-badge{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:4px 14px;border-radius:100px;background:rgba(0,212,170,.1);border:.5px solid rgba(0,212,170,.3);color:var(--teal);margin-bottom:14px}
+.header h1{font-size:26px;font-weight:800;color:#FFF;letter-spacing:-.4px;margin-bottom:6px}
+.header p{font-size:13px;color:var(--tx2)}
+.wrap{max-width:620px;margin:0 auto;padding:0 16px}
+.sec-label{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--tx2);margin-bottom:10px}
+
+/* ── BROWSER-STYLE TABS (match submission form exactly) ───────────── */
+.tabs-wrap{margin-bottom:1rem}
+.tab-bar{display:flex;gap:2px;border-bottom:.5px solid rgba(255,255,255,.12);overflow-x:auto;scrollbar-width:none;padding-bottom:0}
+.tab-bar::-webkit-scrollbar{display:none}
+.tab-btn{padding:7px 12px;font-size:11px;font-weight:600;white-space:nowrap;border:.5px solid transparent;border-bottom:none;border-radius:7px 7px 0 0;background:rgba(255,255,255,.03);color:#475569;cursor:pointer;transition:all .15s;flex-shrink:0;position:relative;bottom:-.5px}
+.tab-btn:hover{background:rgba(255,255,255,.07);color:var(--tx)}
+.tab-btn.active{background:var(--s1);color:#FFF;border-color:rgba(255,255,255,.12);border-bottom-color:var(--s1)}
+.tab-content{background:var(--s1);border:.5px solid rgba(255,255,255,.12);border-top:none;border-radius:0 0 10px 10px;padding:14px;margin-bottom:1rem}
+.tab-pane{display:none}
+.tab-pane.active{display:block}
+
+/* Industry selector inside tabs */
+.ind-sel-row{display:flex;align-items:center;gap:8px;margin-bottom:12px;padding-bottom:10px;border-bottom:.5px solid var(--bd)}
+.ind-sel-row label{font-size:11px;font-weight:700;color:var(--tx2);white-space:nowrap;letter-spacing:.06em;text-transform:uppercase}
+.ind-sel-row select{flex:1;padding:6px 10px;background:rgba(255,255,255,.04);border:.5px solid var(--bd);border-radius:8px;color:#FFF;font-size:13px;outline:none}
+.ind-sel-row select:focus{border-color:rgba(255,255,255,.2)}
+.ind-sel-row select option{background:#1a2535;color:#FFF}
+.ind-placeholder{text-align:center;padding:24px 16px;color:var(--tx2);font-size:13px}
+.ind-placeholder span{font-size:24px;display:block;margin-bottom:8px}
+
+/* ── GAME FLOW (copied from submission form) ──────────────────────── */
+.gf-row{display:flex;gap:0;margin-bottom:2px}
+.gf-spine{display:flex;flex-direction:column;align-items:center;width:60px;flex-shrink:0;padding-top:2px}
+.gf-badge{font-size:9px;font-weight:800;padding:3px 6px;border-radius:100px;border:.5px solid;text-align:center;white-space:nowrap}
+.gf-line{width:1px;flex:1;min-height:8px;margin-top:3px}
+.gf-row:last-child .gf-line{display:none}
+.gf-body{padding:0 0 12px 10px}
+.gf-phase{font-size:12px;font-weight:700;color:#FFF;margin-bottom:3px}
+.gf-detail{font-size:11px;color:var(--tx2);line-height:1.55}
+
+/* ── SCORING (copied from submission form) ────────────────────────── */
+.tier-rows{display:flex;flex-direction:column;gap:5px;margin-bottom:10px}
+.tier-row{display:flex;align-items:stretch;border-radius:7px;overflow:hidden;border:.5px solid rgba(255,255,255,.07)}
+.tier-pts{font-size:15px;font-weight:800;width:48px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.04)}
+.tier-body{padding:7px 11px;flex:1;background:rgba(255,255,255,.025)}
+.tier-name{font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;margin-bottom:2px}
+.tier-desc{font-size:11px;color:var(--tx2)}
+.bonus-rows{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.bonus-card{padding:9px 11px;border-radius:7px;border:.5px solid rgba(255,255,255,.07);background:rgba(255,255,255,.025)}
+.bonus-card.full{grid-column:1/-1}
+.bonus-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:4px}
+.bonus-label{font-size:12px;font-weight:700;color:#FFF}
+.bonus-pts{font-size:14px;font-weight:800;white-space:nowrap;flex-shrink:0}
+.bonus-desc{font-size:11px;color:var(--tx2);line-height:1.5}
+
+/* ── CLIENT TAB ───────────────────────────────────────────────────── */
+.co-header-grid{display:grid;grid-template-columns:68px 1fr;gap:12px;align-items:center;margin-bottom:14px;padding:10px 12px;background:rgba(255,255,255,.04);border-radius:10px;border:.5px solid rgba(255,255,255,.08)}
+.co-logo-box{width:60px;height:60px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.co-header-text{display:flex;flex-direction:column;gap:4px}
+.co-company{font-size:17px;font-weight:800;color:#FFF;line-height:1.2}
+.co-tagline-text{font-size:12px;color:#60A5FA;line-height:1.55}
+.co-ctx-label{font-size:10px;font-weight:700;color:var(--tx2);letter-spacing:.09em;text-transform:uppercase;margin-bottom:6px}
+.co-ctx{font-size:12px;color:var(--tx3);line-height:1.7;margin-bottom:12px}
+.co-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:12px}
+.co-stat{background:rgba(255,255,255,.04);border:.5px solid rgba(255,255,255,.07);border-radius:7px;padding:8px 6px;text-align:center}
+.co-stat-n{font-size:14px;font-weight:800;margin-bottom:2px}
+.co-stat-l{font-size:10px;color:var(--tx2);line-height:1.3}
+.co-challenges{display:flex;flex-direction:column;gap:5px}
+.co-ch{display:flex;align-items:flex-start;gap:7px;font-size:12px;color:var(--tx2);line-height:1.5}
+.ch-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;margin-top:5px;background:var(--red)}
+
+/* ── PROBLEM TAB ──────────────────────────────────────────────────── */
+.prob-card{background:var(--s1);border-radius:10px;overflow:hidden;border:.5px solid;margin-bottom:.75rem}
+.prob-card-head{padding:10px 14px;display:flex;align-items:center;justify-content:space-between}
+.prob-dept-name{font-size:13px;font-weight:700;color:#FFF}
+.prob-body{padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.prob-section-label{font-size:9px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;margin-bottom:4px}
+.prob-persona{font-size:12px;color:var(--tx3);line-height:1.6;padding:8px 11px;background:rgba(255,255,255,.03);border-radius:6px;border:.5px solid rgba(255,255,255,.06)}
+.prob-problems{display:flex;flex-direction:column;gap:5px}
+.prob-item{display:flex;align-items:flex-start;gap:7px;font-size:12px;color:var(--tx2);line-height:1.5}
+.prob-bullet{width:5px;height:5px;border-radius:50%;flex-shrink:0;margin-top:5px;background:var(--red)}
+.prob-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
+.prob-stat{background:rgba(255,255,255,.04);border:.5px solid rgba(255,255,255,.07);border-radius:7px;padding:7px 6px;text-align:center}
+.prob-stat-n{font-size:13px;font-weight:800;margin-bottom:2px}
+.prob-stat-l{font-size:10px;color:var(--tx2);line-height:1.3}
+.prob-mission{padding:9px 12px;border-radius:7px;font-size:12px;line-height:1.6;border-left:3px solid;border:.5px solid}
+.prob-mission-label{font-size:9px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;margin-bottom:4px}
+.dept-accordion{border:.5px solid var(--bd);border-radius:9px;margin-bottom:5px;overflow:hidden}
+.dept-acc-hdr{padding:9px 13px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;background:rgba(255,255,255,.03);font-size:12px;font-weight:700;color:#FFF;transition:background .15s}
+.dept-acc-hdr:hover{background:rgba(255,255,255,.06)}
+.dept-acc-body{display:none;padding:12px 14px;border-top:.5px solid var(--bd)}
+.dept-acc-body.open{display:block}
+
+/* ── DEPARTMENTS TAB ──────────────────────────────────────────────── */
+.dept-list-item{display:flex;align-items:flex-start;gap:10px;padding:9px 11px;border-radius:8px;border:.5px solid rgba(255,255,255,.06);background:rgba(255,255,255,.02);margin-bottom:5px}
+.dept-num{width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--tx2);flex-shrink:0;margin-top:1px}
+.dept-info{flex:1}
+.dept-name{font-size:13px;font-weight:700;color:#FFF;margin-bottom:2px}
+.dept-desc{font-size:11px;color:var(--tx2);line-height:1.4}
+
+/* ── ROLE CARDS ───────────────────────────────────────────────────── */
+.role-section{margin-bottom:1.5rem}
+.role-grid-top{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:9px}
+.role-grid-bot{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}
+.role-card{border-radius:12px;border:.5px solid var(--bd);background:var(--s1);padding:12px 13px}
+.role-card-top{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.role-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.role-name{font-size:12px;font-weight:700;color:#FFF;line-height:1.2}
+.role-count{font-size:10px;font-weight:600;margin-top:2px}
+.role-bullets{display:flex;flex-direction:column;gap:3px}
+.role-bullet{font-size:10px;color:var(--tx3);line-height:1.4;padding-left:10px;position:relative}
+.role-bullet::before{content:"·";position:absolute;left:2px;color:var(--tx2)}
+.pe-highlight{border-color:rgba(0,164,211,.3);background:linear-gradient(135deg,rgba(0,164,211,.07),rgba(0,212,170,.03))}
+.copilot-note{font-size:10px;color:#38BDF8;font-weight:600;margin-top:7px;padding:5px 8px;background:rgba(0,164,211,.1);border-radius:6px;border:.5px solid rgba(0,164,211,.25)}
+
+/* ── TOOLS ────────────────────────────────────────────────────────── */
+.tools-section{margin-bottom:1.5rem}
+.tools-row{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.tool-card{border-radius:12px;border:.5px solid var(--bd);background:var(--s1);padding:12px 13px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:7px}
+.tool-logo{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden}
+.tool-name{font-size:12px;font-weight:700;color:#FFF}
+.tool-use{font-size:10px;color:var(--tx2);line-height:1.45}
+.tool-tag{font-size:9px;font-weight:700;letter-spacing:.07em;padding:2px 8px;border-radius:100px;margin-top:2px}
+
+/* ── INFO BOX ─────────────────────────────────────────────────────── */
+.info-box{display:flex;align-items:flex-start;gap:11px;padding:12px 14px;background:rgba(55,138,221,.08);border:.5px solid rgba(55,138,221,.3);border-left:3px solid var(--blue);border-radius:0 8px 8px 0;margin-bottom:1rem;font-size:12px;color:#85B7EB;line-height:1.6}
+.info-box-icon{font-size:18px;flex-shrink:0;margin-top:1px}
+.info-box strong{color:#FFF;display:block;margin-bottom:4px;font-size:13px}
+
+/* ── NAME INPUTS ──────────────────────────────────────────────────── */
+.input-section{margin-bottom:1rem}
+.name-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin-bottom:12px}
+.name-row{display:flex;align-items:center;gap:7px}
+.name-num{width:18px;font-size:11px;color:var(--tx2);text-align:right;flex-shrink:0}
+.name-input{flex:1;padding:7px 10px;background:rgba(255,255,255,.04);border:.5px solid var(--bd);border-radius:8px;color:#FFF;font-size:13px;outline:none;transition:border-color .15s}
+.name-input:focus{border-color:rgba(255,255,255,.2);background:rgba(255,255,255,.06)}
+.name-input::placeholder{color:var(--tx2)}
+
+/* ── BUTTONS ──────────────────────────────────────────────────────── */
+.btn-row{display:flex;gap:8px;margin-bottom:1.5rem}
+.btn-p{flex:1;padding:11px;background:var(--teal);color:#05080F;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;transition:filter .15s}
+.btn-p:hover{filter:brightness(1.1)}
+.btn-p:active{transform:scale(.98)}
+.btn-g{padding:11px 18px;background:transparent;border:.5px solid var(--bd2);border-radius:8px;color:var(--tx);font-size:13px;cursor:pointer;transition:all .15s}
+.btn-g:hover{background:rgba(255,255,255,.05)}
+
+/* ── RESULT ───────────────────────────────────────────────────────── */
+.result{display:none}
+.result.show{display:block}
+.result-header{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;background:var(--s1);border:.5px solid var(--bd);border-radius:12px 12px 0 0;border-bottom:none}
+.result-title{font-size:13px;font-weight:700;color:#FFF}
+.copy-btn{padding:5px 12px;background:transparent;border:.5px solid var(--bd2);border-radius:6px;color:var(--tx2);font-size:11px;font-weight:600;cursor:pointer;transition:all .15s}
+.copy-btn:hover{background:rgba(255,255,255,.06);color:var(--tx)}
+.copy-btn.copied{color:var(--green);border-color:rgba(34,197,94,.4)}
+.result-cards{border:.5px solid var(--bd);border-radius:0 0 12px 12px;overflow:hidden}
+.rcard{display:flex;align-items:flex-start;gap:12px;padding:11px 14px;border-top:.5px solid var(--bd)}
+.rcard:first-child{border-top:none}
+.rcard-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;margin-top:1px}
+.rcard-body{flex:1}
+.rcard-role{font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;margin-bottom:2px}
+.rcard-name{font-size:17px;font-weight:700;color:#FFF;margin-bottom:4px}
+.rcard-badges{display:flex;flex-wrap:wrap;gap:5px}
+.copilot-pill{font-size:10px;padding:2px 8px;border-radius:100px;font-weight:600;background:rgba(0,164,211,.15);color:#38BDF8;border:.5px solid rgba(0,164,211,.3)}
+.copilot-rule{font-size:11px;color:var(--tx2);text-align:center;margin-top:6px;padding:8px 12px;background:rgba(0,164,211,.06);border:.5px solid rgba(0,164,211,.15);border-radius:8px}
+.shuffle-note{font-size:11px;color:var(--tx2);text-align:center;margin-top:6px}
+.footer{text-align:center;font-size:10px;font-weight:600;letter-spacing:.1em;color:var(--tx2);text-transform:uppercase;margin-top:2.5rem;padding-bottom:1rem}
+
+/* ══ LIGHT MODE ══════════════════════════════════════════════════════ */
+[data-theme="light"]{background:#F7F8FA !important}
+[data-theme="light"] .theme-toggle{background:rgba(0,0,0,.06);border-color:rgba(0,0,0,.18);color:#374151}
+[data-theme="light"] h1{color:#111827 !important}
+[data-theme="light"] .header p{color:#888780}
+[data-theme="light"] .header-badge{background:#FBEAF0 !important;border-color:#F4C0D1 !important;color:#72243E !important}
+/* Tabs */
+[data-theme="light"] .tab-bar{background:linear-gradient(90deg,#FFF0F6,#FBEAF0,#F4C0D1) !important;border-bottom-color:var(--pink) !important}
+[data-theme="light"] .tab-btn{background:rgba(255,255,255,.45) !important;color:#993556 !important;border-color:transparent !important}
+[data-theme="light"] .tab-btn.active{background:var(--pink) !important;color:#FFF !important;border-color:#993556 !important;border-bottom-color:var(--pink) !important}
+[data-theme="light"] .tab-content{background:#FFF !important;border-color:#F4C0D1 !important}
+/* Game flow light */
+[data-theme="light"] .gf-phase{color:var(--pink) !important}
+[data-theme="light"] .gf-detail{color:#374151 !important}
+[data-theme="light"] .gf-badge{background:var(--pink) !important;color:#FFF !important;border-color:#993556 !important}
+[data-theme="light"] .gf-line{background:#F4C0D1 !important}
+/* Scoring light */
+[data-theme="light"] .tier-row{background:#FFF !important;border-color:#F4C0D1 !important}
+[data-theme="light"] .tier-pts{background:#FFF0F6 !important}
+[data-theme="light"] .tier-body{background:#FFF !important}
+[data-theme="light"] .tier-name{color:var(--pink) !important}
+[data-theme="light"] .tier-desc{color:#374151 !important}
+[data-theme="light"] .bonus-card{background:#F9FAFB !important;border-color:#E5E7EB !important}
+[data-theme="light"] .bonus-label{color:var(--pink) !important}
+[data-theme="light"] .bonus-desc{color:#374151 !important}
+/* Client light */
+[data-theme="light"] .co-header-grid{background:rgba(0,0,0,.03) !important;border-color:rgba(0,0,0,.08) !important}
+[data-theme="light"] .co-company{color:#111827 !important}
+[data-theme="light"] .co-tagline-text{color:#185FA5 !important}
+[data-theme="light"] .co-ctx-label{color:#6B7280 !important}
+[data-theme="light"] .co-ctx{color:#374151 !important}
+[data-theme="light"] .co-stat{background:rgba(0,0,0,.03) !important;border-color:#E5E7EB !important}
+[data-theme="light"] .co-stat-n{color:#111827 !important}
+[data-theme="light"] .co-stat-l{color:#6B7280 !important}
+[data-theme="light"] .co-ch{color:#6B7280 !important}
+[data-theme="light"] .ch-dot{background:var(--pink) !important}
+/* Problem light */
+[data-theme="light"] .prob-card{background:#FFF !important;border-color:#F4C0D1 !important}
+[data-theme="light"] .prob-card-head{background:var(--pink) !important}
+[data-theme="light"] .prob-dept-name{color:#FFF !important}
+[data-theme="light"] .prob-persona{color:#374151 !important;background:#F9FAFB !important;border-color:#E5E7EB !important}
+[data-theme="light"] .prob-item span{color:#374151 !important}
+[data-theme="light"] .prob-stat{background:#F9FAFB !important;border-color:#E5E7EB !important}
+[data-theme="light"] .prob-stat-n{color:#374151 !important}
+[data-theme="light"] .prob-mission{background:#EEEDFE !important;border-color:#7F77DD !important;color:#3C3489 !important}
+[data-theme="light"] .prob-mission-label{color:#534AB7 !important}
+[data-theme="light"] .dept-accordion{border-color:#F4C0D1 !important}
+[data-theme="light"] .dept-acc-hdr{background:#FFF0F6 !important;color:var(--pink) !important}
+[data-theme="light"] .dept-acc-body{background:#FFF !important}
+/* Departments light */
+[data-theme="light"] .dept-list-item{background:#F9FAFB !important;border-color:#E5E7EB !important}
+[data-theme="light"] .dept-name{color:#111827 !important}
+[data-theme="light"] .dept-desc{color:#6B7280 !important}
+/* Role cards light */
+[data-theme="light"] .role-card{background:#FFF !important;border-color:#E5E7EB !important}
+[data-theme="light"] .role-name{color:#111827 !important}
+[data-theme="light"] .role-bullet{color:#374151 !important}
+[data-theme="light"] .copilot-note{background:rgba(0,164,211,.08) !important;border-color:rgba(0,164,211,.3) !important}
+/* Tools light */
+[data-theme="light"] .tool-card{background:#FFF !important;border-color:#E5E7EB !important}
+[data-theme="light"] .tool-name{color:#111827 !important}
+[data-theme="light"] .tool-use{color:#6B7280 !important}
+/* Info box light */
+[data-theme="light"] .info-box{background:rgba(55,138,221,.06) !important;border-color:rgba(55,138,221,.35) !important;color:#185FA5 !important}
+[data-theme="light"] .info-box strong{color:#111827 !important}
+/* Inputs light */
+[data-theme="light"] .name-input{background:#FFF !important;border-color:#D1D5DB !important;color:#111827 !important}
+[data-theme="light"] .name-input::placeholder{color:#9CA3AF !important}
+/* Buttons light */
+[data-theme="light"] .btn-g{border-color:#D1D5DB !important;color:#374151 !important}
+[data-theme="light"] .btn-g:hover{background:rgba(0,0,0,.04) !important}
+/* Results light */
+[data-theme="light"] .result-header{background:#FFF !important;border-color:#E5E7EB !important}
+[data-theme="light"] .result-title{color:#111827 !important}
+[data-theme="light"] .result-cards{border-color:#E5E7EB !important}
+[data-theme="light"] .rcard{border-top-color:#E5E7EB !important}
+[data-theme="light"] .rcard-name{color:#111827 !important}
+[data-theme="light"] .copilot-rule{background:rgba(0,164,211,.06) !important;border-color:rgba(0,164,211,.2) !important}
+[data-theme="light"] .ind-sel-row select{background:#F9FAFB !important;border-color:#D1D5DB !important;color:#111827 !important}
+[data-theme="light"] .ind-sel-row label{color:#6B7280 !important}
+</style>
+</head>
+<body>
+
+<button class="theme-toggle" id="themeToggle" onclick="toggleTheme()">
+  <span id="themeIcon">☀</span>
+  <span id="themeLabel">Light</span>
+</button>
+
+<div class="header">
+  <div class="header-badge">ATCP SA Agenticon 2026</div>
+  <h1>AI Chain Challenge</h1>
+  <p>Role Randomiser — assign roles before the game starts</p>
+</div>
+
+<div class="wrap">
+
+<!-- ── TABS: Game Flow, Scoring, Client, Problem, Departments ──────── -->
+<div class="tabs-wrap">
+  <div class="tab-bar" id="tabBar">
+    <button class="tab-btn active" data-tab="flow"    onclick="switchTab('flow')">⏱ Game Flow</button>
+    <button class="tab-btn"        data-tab="score"   onclick="switchTab('score')">📊 Scoring</button>
+    <button class="tab-btn"        data-tab="client"  onclick="switchTab('client')">🏢 Client</button>
+    <button class="tab-btn"        data-tab="problem" onclick="switchTab('problem')">🎯 Problem</button>
+    <button class="tab-btn"        data-tab="depts"   onclick="switchTab('depts')">🏗 Departments</button>
+  </div>
+  <div class="tab-content">
+
+    <!-- Game Flow -->
+    <div class="tab-pane active" id="pane-flow">
+      <div class="gf-row"><div class="gf-spine"><div class="gf-badge" style="color:#0EA5E9;border-color:rgba(14,165,233,.35);background:rgba(14,165,233,.1)">0–10 min</div><div class="gf-line" style="background:rgba(14,165,233,.2)"></div></div><div class="gf-body"><div class="gf-phase">Sprint — Ideation + Hero Idea</div><div class="gf-detail">Submit as many AI use cases as possible. Submit <strong>ONLY ONE Hero Idea</strong> (it must be Agentic AI in nature and 2+ departments will also benefit from it). First team to submit 5 ideas the fastest will have additional <strong>+15 pts</strong>.</div></div></div>
+      <div class="gf-row"><div class="gf-spine"><div class="gf-badge" style="color:#7C3AED;border-color:rgba(124,58,237,.35);background:rgba(124,58,237,.1)">10–12 min</div><div class="gf-line" style="background:rgba(124,58,237,.2)"></div></div><div class="gf-body"><div class="gf-phase">Review Window</div><div class="gf-detail">Sprint Ideation is over. Overall submissions from different teams will be shown automatically for 2 minutes only. This is your chance to steal the ideas and improve it. You only have <strong>three (3) ideas</strong> to steal from other teams.</div></div></div>
+      <div class="gf-row"><div class="gf-spine"><div class="gf-badge" style="color:#F59E0B;border-color:rgba(245,158,11,.35);background:rgba(245,158,11,.1)">12–15 min</div><div class="gf-line" style="background:rgba(245,158,11,.2)"></div></div><div class="gf-body"><div class="gf-phase">Steal Window</div><div class="gf-detail">Submit your stolen yet improved ideas with proper tagging. Claude judges if it is better — confirmed = <strong>×3 score</strong>, not better = 0.</div></div></div>
+      <div class="gf-row"><div class="gf-spine"><div class="gf-badge" style="color:#10B981;border-color:rgba(16,185,129,.35);background:rgba(16,185,129,.1)">15+ min</div><div class="gf-line" style="background:rgba(16,185,129,.2)"></div></div><div class="gf-body"><div class="gf-phase">Claude Scores — Return to Main Room</div><div class="gf-detail">All submissions locked. Claude Operator scores everything. Final leaderboard posted. Winner and Golden Idea announced in the main room.</div></div></div>
+    </div>
+
+    <!-- Scoring -->
+    <div class="tab-pane" id="pane-score">
+      <div class="tier-rows">
+        <div class="tier-row"><div class="tier-pts" style="color:#64748B">5</div><div class="tier-body"><div class="tier-name" style="color:#94A3B8">Tier 1 — Automation</div><div class="tier-desc">Automates a manual, repetitive task using AI</div></div></div>
+        <div class="tier-row"><div class="tier-pts" style="color:#0EA5E9">10</div><div class="tier-body"><div class="tier-name" style="color:#0EA5E9">Tier 2 — Intelligence</div><div class="tier-desc">AI predicts, recommends, or classifies in real time</div></div></div>
+        <div class="tier-row"><div class="tier-pts" style="color:#00D4AA">20</div><div class="tier-body"><div class="tier-name" style="color:#00D4AA">Tier 3 — Agentic AI</div><div class="tier-desc">An AI agent acts autonomously across systems end-to-end</div></div></div>
+        <div class="tier-row"><div class="tier-pts" style="color:#7C3AED">35</div><div class="tier-body"><div class="tier-name" style="color:#7C3AED">Tier 4 — Transformative</div><div class="tier-desc">Reimagines an entire business process or revenue model</div></div></div>
+      </div>
+      <div style="font-size:10px;font-weight:700;color:#64748B;letter-spacing:.09em;text-transform:uppercase;margin-bottom:7px;margin-top:12px">Bonus Points</div>
+      <div class="bonus-rows">
+        <div class="bonus-card"><div class="bonus-top"><div class="bonus-label">⚡ Speed Bonus</div><div class="bonus-pts" style="color:#0EA5E9">+15</div></div><div class="bonus-desc">First team to 5 correct submissions</div></div>
+        <div class="bonus-card"><div class="bonus-top"><div class="bonus-label">🃏 The Steal</div><div class="bonus-pts" style="color:#F59E0B">×3 or 0</div></div><div class="bonus-desc">Improved = ×3 · Not improved = 0</div></div>
+        <div class="bonus-card full"><div class="bonus-top"><div class="bonus-label">💎 Hero Idea</div><div class="bonus-pts"><span style="color:#00D4AA">×2</span><span style="color:#64748B;font-size:11px"> / </span><span style="color:#F87171">−5</span><span style="color:#64748B;font-size:11px"> / </span><span style="color:#475569">−10</span></div></div><div class="bonus-desc">Confirmed ×2 · Rejected −5 · Not submitted −10</div></div>
+        <div class="bonus-card full"><div class="bonus-top"><div class="bonus-label">✨ Golden Idea</div><div class="bonus-pts" style="color:#F59E0B">+25</div></div><div class="bonus-desc">Claude's top pick across all teams</div></div>
+      </div>
+    </div>
+
+    <!-- Client -->
+    <div class="tab-pane" id="pane-client">
+      <div class="ind-sel-row">
+        <label>Industry</label>
+        <select id="ctxIndSel" onchange="buildContextTabs(this.value)">
+          <option value="">— Select to view company info —</option>
+          <option value="CMT">CMT — VoxNet Global</option>
+          <option value="PRD">PRD — NovaMake Industries</option>
+          <option value="FS">FS — ClearVault Financial</option>
+          <option value="RES">RES — VoltEdge Energy</option>
+          <option value="HPS">H&PS — LifeForge Sciences</option>
+        </select>
+      </div>
+      <div id="clientContent"><div class="ind-placeholder"><span>🏢</span>Select an industry above to view company context</div></div>
+    </div>
+
+    <!-- Problem -->
+    <div class="tab-pane" id="pane-problem">
+      <div class="ind-sel-row">
+        <label>Industry</label>
+        <select id="probIndSel" onchange="buildContextTabs(this.value)">
+          <option value="">— Select to view department problems —</option>
+          <option value="CMT">CMT — VoxNet Global</option>
+          <option value="PRD">PRD — NovaMake Industries</option>
+          <option value="FS">FS — ClearVault Financial</option>
+          <option value="RES">RES — VoltEdge Energy</option>
+          <option value="HPS">H&PS — LifeForge Sciences</option>
+        </select>
+      </div>
+      <div id="problemContent"><div class="ind-placeholder"><span>🎯</span>Select an industry above to view department problems</div></div>
+    </div>
+
+    <!-- Departments -->
+    <div class="tab-pane" id="pane-depts">
+      <div class="ind-sel-row">
+        <label>Industry</label>
+        <select id="deptsIndSel" onchange="buildContextTabs(this.value)">
+          <option value="">— Select to view departments —</option>
+          <option value="CMT">CMT — VoxNet Global</option>
+          <option value="PRD">PRD — NovaMake Industries</option>
+          <option value="FS">FS — ClearVault Financial</option>
+          <option value="RES">RES — VoltEdge Energy</option>
+          <option value="HPS">H&PS — LifeForge Sciences</option>
+        </select>
+      </div>
+      <div id="deptsContent"><div class="ind-placeholder"><span>🏗</span>Select an industry above to view departments</div></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── ROLE CARDS ───────────────────────────────────────────────────── -->
+<div class="role-section">
+  <div class="sec-label">Team Roles</div>
+  <div class="role-grid-top">
+    <div class="role-card">
+      <div class="role-card-top"><div class="role-icon" style="background:rgba(0,212,170,.15)">🎯</div><div><div class="role-name">Delivery Lead</div><div class="role-count" style="color:var(--teal)">× 1</div></div></div>
+      <div class="role-bullets"><div class="role-bullet">Sets team direction &amp; strategy</div><div class="role-bullet">Activates Power Up Cards</div><div class="role-bullet">Decides which ideas to steal</div><div class="role-bullet">Final decision authority</div></div>
+    </div>
+    <div class="role-card">
+      <div class="role-card-top"><div class="role-icon" style="background:rgba(212,83,126,.15)">⌨️</div><div><div class="role-name">DevOps Engineer</div><div class="role-count" style="color:var(--pink)">× 1</div></div></div>
+      <div class="role-bullets"><div class="role-bullet"><strong style="color:#FFF">Only</strong> member who submits</div><div class="role-bullet">Applies correct tags every entry</div><div class="role-bullet">No tag = no score, no exceptions</div><div class="role-bullet">Manages the submission form</div></div>
+    </div>
+    <div class="role-card">
+      <div class="role-card-top"><div class="role-icon" style="background:rgba(127,119,221,.15)">🏗️</div><div><div class="role-name">Architect</div><div class="role-count" style="color:var(--violet)">× 1</div></div></div>
+      <div class="role-bullets"><div class="role-bullet">Collects ideas from all PEs</div><div class="role-bullet">Refines ideas before submission</div><div class="role-bullet">Checks tags before DevOps submits</div><div class="role-bullet">Removes weak/duplicate entries</div></div>
+    </div>
+  </div>
+  <div class="role-grid-bot">
+    <div class="role-card">
+      <div class="role-card-top"><div class="role-icon" style="background:rgba(245,158,11,.15)">💡</div><div><div class="role-name">Developer</div><div class="role-count" style="color:var(--amber)">× 1</div></div></div>
+      <div class="role-bullets"><div class="role-bullet">Identifies the Hero Idea early</div><div class="role-bullet">Ensures it's Agentic AI, 2+ depts</div><div class="role-bullet">Develops Hero before min 10</div><div class="role-bullet">Judges stolen idea improvements</div></div>
+    </div>
+    <div class="role-card pe-highlight">
+      <div class="role-card-top"><div class="role-icon" style="background:rgba(0,164,211,.15)">🧠</div><div><div class="role-name" style="color:#38BDF8">Prompt Engineer</div><div class="role-count" style="color:#38BDF8">× 3–8</div></div></div>
+      <div class="role-bullets"><div class="role-bullet">Primary idea generator</div><div class="role-bullet">Pitches verbally to the Architect</div><div class="role-bullet"><strong style="color:#FFF">Does NOT</strong> submit to the form</div><div class="role-bullet">Flags Agentic AI ideas to Developer</div></div>
+      <div class="copilot-note">🤖 Only the <strong>first 3 Prompt Engineers</strong> drawn are eligible to use Microsoft Copilot</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── ALLOWED TOOLS ─────────────────────────────────────────────────── -->
+<div class="tools-section">
+  <div class="sec-label">Allowed Tools</div>
+  <div class="tools-row">
+    <div class="tool-card">
+      <div class="tool-logo" style="background:#5059C9">
+        <svg width="28" height="28" viewBox="0 0 32 32" fill="none"><path d="M20 8a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0Z" fill="white"/><path d="M24 10a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Z" fill="rgba(255,255,255,.75)"/><path d="M9 16c0-1.66 1.34-3 3-3h8c1.66 0 3 1.34 3 3v6H9v-6Z" fill="white"/><path d="M22 14h3a2 2 0 0 1 2 2v5h-5v-7Z" fill="rgba(255,255,255,.7)"/><rect x="8" y="21" width="11" height="2" rx="1" fill="rgba(255,255,255,.35)"/></svg>
+      </div>
+      <div class="tool-name">MS Teams</div>
+      <div class="tool-use">Official communication channel for the event</div>
+      <div class="tool-tag" style="background:rgba(80,89,201,.2);color:#818CF8;border:.5px solid rgba(80,89,201,.3)">COMMUNICATION</div>
+    </div>
+    <div class="tool-card">
+      <div class="tool-logo" style="background:#1A1A2E">
+        <svg width="28" height="28" viewBox="0 0 32 32" fill="none"><path d="M16 3 C16 3 13.5 10 16 16 C18.5 10 16 3 16 3Z" fill="#2563EB"/><path d="M29 16 C29 16 22 13.5 16 16 C22 18.5 29 16 29 16Z" fill="#7C3AED"/><path d="M16 29 C16 29 18.5 22 16 16 C13.5 22 16 29 16 29Z" fill="#00B4D8"/><path d="M3 16 C3 16 10 18.5 16 16 C10 13.5 3 16 3 16Z" fill="#0EA5E9"/><path d="M24 7 C24 7 22.8 10 24 12 C25.2 10 24 7 24 7Z" fill="#7C3AED" opacity=".7"/><path d="M29 12 C29 12 26 11 24 12 C26 13 29 12 29 12Z" fill="#2563EB" opacity=".7"/><circle cx="16" cy="16" r="2.5" fill="white" opacity=".9"/></svg>
+      </div>
+      <div class="tool-name">Copilot</div>
+      <div class="tool-use">Idea generation — first 3 Prompt Engineers only</div>
+      <div class="tool-tag" style="background:rgba(0,180,216,.15);color:#38BDF8;border:.5px solid rgba(0,180,216,.3)">PE × 3 ONLY</div>
+    </div>
+    <div class="tool-card">
+      <div class="tool-logo" style="background:#fff">
+        <svg width="30" height="30" viewBox="0 0 32 32" fill="none"><defs><linearGradient id="eG1" x1="5" y1="5" x2="27" y2="27" gradientUnits="userSpaceOnUse"><stop stop-color="#0F4C81"/><stop offset="0.5" stop-color="#0078D4"/><stop offset="1" stop-color="#1DAADC"/></linearGradient><linearGradient id="eG2" x1="8" y1="16" x2="28" y2="28" gradientUnits="userSpaceOnUse"><stop stop-color="#1DAADC"/><stop offset="1" stop-color="#38BDF8" stop-opacity="0.6"/></linearGradient></defs><path d="M5 17C5 11.5 9.5 7 15 7C18.3 7 21.2 8.5 23.1 11C21.7 9.8 19.9 9 18 9C13.6 9 10 12.6 10 17C10 19.3 11 21.3 12.6 22.7C8.2 21.1 5 19.3 5 17Z" fill="url(#eG1)"/><path d="M13 22.8C14.3 24.1 16 25 18 25C22.4 25 26 21.4 26 17C26 14.5 24.9 12.3 23.1 11C23.8 12.2 24.2 13.6 24.2 15.1C24.2 19.2 21.1 22.6 17.1 23C15.6 23.1 14.2 23 13 22.8Z" fill="url(#eG2)"/></svg>
+      </div>
+      <div class="tool-name">Microsoft Edge</div>
+      <div class="tool-use">Submit ideas via the Submission Form</div>
+      <div class="tool-tag" style="background:rgba(29,170,220,.15);color:#7DD3FC;border:.5px solid rgba(29,170,220,.3)">SUBMISSION</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── INFO BOX ──────────────────────────────────────────────────────── -->
+<div class="info-box">
+  <div class="info-box-icon">💡</div>
+  <div>
+    <strong>For facilitators</strong>
+    <strong>Pre-assigning Delivery Lead or DevOps Engineer?</strong><br>
+    If the team has already decided who will be Delivery Lead or DevOps Engineer, <strong>remove their name from the list below</strong> before clicking Assign.<br>
+    The name assigned to DL or DevOps upon random role assignment will assume the role of Prompt Engineer.
+  </div>
+</div>
+
+<!-- ── TEAM MEMBER INPUTS ────────────────────────────────────────────── -->
+<div class="input-section">
+  <div class="sec-label">Team member names (3 minimum · 12 maximum)</div>
+  <div class="name-grid" id="nameGrid"></div>
+</div>
+
+<!-- ── BUTTONS ───────────────────────────────────────────────────────── -->
+<div class="btn-row">
+  <button class="btn-p" onclick="assign()">⚡ Assign roles randomly</button>
+  <button class="btn-g" onclick="resetAll()">Reset</button>
+</div>
+
+<!-- ── RESULT ────────────────────────────────────────────────────────── -->
+<div class="result" id="result">
+  <div class="result-header">
+    <div class="result-title">Role Assignment</div>
+    <button class="copy-btn" id="copyBtn" onclick="copyTeams()">Copy for Teams chat</button>
+  </div>
+  <div class="result-cards" id="resultCards"></div>
+  <div class="copilot-rule">🤖 Only Copilot-eligible Prompt Engineers may use Microsoft Copilot. Nobody uses Claude directly — Claude is the scoring engine.</div>
+  <div class="shuffle-note">Not happy with the draw? Click <strong style="color:#CBD5E1">Assign roles randomly</strong> again to reshuffle.</div>
+</div>
+
+<div class="footer">ATCP SA Agenticon 2026 · AI Chain Challenge · Virtual</div>
+</div><!-- /wrap -->
+
+<script>
+// Auto-reset every page open
+window.addEventListener('load', resetAll);
+
+const IND_DATA = {"CMT":{"label":"CMT","company":"VoxNet Global","type":"Telecommunications Operator","color":"#00D4AA","bg":"#0F6E56","tagline":"Connecting 18 million subscribers — and struggling to keep them.","ctx":"VoxNet Global is a major telco serving 18M subscribers across Southeast Asia. Revenue growth has stalled at 1.2% YoY while customer acquisition costs have risen 34% and network opex is consuming 58% of revenues. The CEO has issued an AI-first mandate: drive 15% EBITDA improvement within 18 months — or face a strategic restructure.","stats":[["18M","Active Subscribers"],["23%","Annual Churn"],["$4.1B","Revenue"],["58%","Network Opex Ratio"]],"challenges":["Subscriber churn accelerating — revenue per user flat for 3 years","Network operations reactive — mean time to detect faults averaging 51 minutes","Customer experience broken — chatbot resolves fewer than 1 in 3 contacts"],"teams":["Team Backbone","Team Bandwidth","Team Beacon","Team Cipher","Team Firewall","Team Frequency","Team Gateway","Team Latency","Team Node","Team Packet","Team Protocol","Team Proxy","Team Relay","Team Router","Team Satellite","Team Spectrum","Team Subnet","Team Switch","Team Token","Team Uplink"],"depts":[{"n":"Customer Acquisition & Marketing","p":"You are VoxNet's Growth team — responsible for every new subscriber and every marketing dollar spent.","probs":["Marketing runs on 3-year-old segments — same generic offer to churned and new customers","$128M ad spend yields a 2.1% conversion rate with zero prospect scoring or personalisation","No predictive model exists to identify which prospects become high-value long-term subscribers"],"stats":[["$47","Avg customer acquisition cost"],["2.1%","Digital conversion rate"],["$128M","Annual ad spend"]],"m":"Propose AI use cases that identify high-intent prospects, personalise offers in real time, and cut CAC by 30%."},{"n":"Order Management & Provisioning","p":"You are VoxNet's Provisioning team — activating new subscribers from sign-up to live service.","probs":["34% of new orders hit a technical fallout requiring 3+ hours of manual investigation","No automated customer updates during delays — customers wait in silence and churn","Any provisioning delay makes customers 4× more likely to cancel before activation"],"stats":[["8.3 days","Avg order-to-activation"],["34%","Order fallout rate"],["4×","Cancellation risk with delay"]],"m":"Propose AI use cases that auto-resolve order fallouts, compress activation to 48 hours, and keep every customer informed end to end."},{"n":"Network Operations & Engineering","p":"You are VoxNet's Network team — detecting faults after they have already affected customers for nearly an hour.","probs":["Engineers manually correlate alarms across 6 monitoring systems — 7+ hours per incident","MTTD is 51 minutes — customers experience problems long before VoxNet even knows","Wrong skill set dispatched 31% of the time, causing costly repeat visits"],"stats":[["51 min","Mean time to detect"],["4.8 hrs","Mean time to resolve"],["31%","Wrong-dispatch rate"]],"m":"Propose AI use cases that detect anomalies before customers notice, auto-correlate alarms to root cause, and optimise technician dispatch."},{"n":"Customer Experience & Contact Center","p":"You are VoxNet's CX team — fielding every complaint, query, and cancellation request.","probs":["Virtual agent resolves only 31% of contacts — 69% escalate to live agents costing far more","Agents get no context on transfer — customers repeat themselves 2.7 times on average","Top 6 issue types account for 78% of all contacts — all have known, repeatable solutions"],"stats":[["69%","Chatbot escalation rate"],["16 min","Avg handle time"],["2.7×","Problem repetitions per contact"]],"m":"Propose AI use cases that lift self-service resolution to 70%+, eliminate context loss at handoff, and fully automate the top 3 issue types."},{"n":"Billing & Revenue Management","p":"You are VoxNet's Billing team — managing $4.1B in revenues with a 12% error rate baked into every invoice.","probs":["12.4% billing error rate from rating engine inconsistencies and bundle mis-configuration","$89M in annual revenue leaks from unbilled usage and contract non-compliance","Revenue recognition takes 23 days — limiting commercial decision speed significantly"],"stats":[["12.4%","Billing error rate"],["$89M","Annual revenue leakage"],["23 days","Revenue recognition lag"]],"m":"Propose AI use cases that detect billing anomalies pre-invoice, recover leakage at source, and compress revenue close to under 5 days."},{"n":"Field Service & Technical Operations","p":"You are VoxNet's Field Ops team — sending technicians to fix problems that could have been prevented.","probs":["Technicians fix the issue on the first visit only 43% of the time — 2.8 avg visits per resolution","Technicians arrive without prior visit history, spare parts inventory, or access credentials","At $1,240 per truck roll, repeat dispatches cost $210M annually"],"stats":[["43%","First-time fix rate"],["2.8","Avg visits per resolution"],["$1,240","Cost per truck roll"]],"m":"Propose AI use cases that arm technicians before arrival, predict required parts, and raise first-time fix rate above 80%."},{"n":"Product & Portfolio Management","p":"You are VoxNet's Product team — spending 18 months to launch products that 61% of the time fail to break even.","probs":["18-month average time-to-market — competitive response is equally slow and fragmented","61% of launched products miss break-even within 24 months of launch","No AI used to sense market signals or model pricing elasticity before launch decisions"],"stats":[["18 months","Avg time-to-market"],["61%","Products below break-even at 24 months"],["6+ months","Competitor response time"]],"m":"Propose AI use cases that compress time-to-market, predict product-market fit pre-launch, and enable real-time dynamic pricing."},{"n":"IT & Digital Infrastructure","p":"You are VoxNet's IT team — keeping a 17-year-old BSS/OSS stack alive while building the future on top of it.","probs":["94% of core operations depend on a 17-year-old legacy stack with 23 integration failures per month","Each integration failure takes 4+ hours to diagnose — consuming engineering capacity","New digital initiatives take 9+ months to implement due to the integration backlog"],"stats":[["94%","Legacy system dependency"],["23/month","Integration failures"],["9+ months","New initiative lead time"]],"m":"Propose AI use cases that reduce integration failure rates, enable self-healing IT incidents, and accelerate legacy modernisation."},{"n":"Data, Analytics & AI","p":"You are VoxNet's Data team — sitting on 47 disconnected data sources with 82% quality failure rates.","probs":["47 data sources with no unified model — business units run conflicting dashboards","82% of data quality checks fail before analysis can begin — AI pilots keep failing at data prep","Average time to a usable insight is 6 weeks — far too slow for commercial decision-making"],"stats":[["47","Disconnected data sources"],["82%","Data quality failure rate"],["6 weeks","Avg time to insight"]],"m":"Propose AI use cases that automate data quality remediation, unify customer data, and reduce time-to-insight from 6 weeks to 6 hours."},{"n":"Legal, Risk & Regulatory Compliance","p":"You are VoxNet's Compliance team — managing 14 regulatory jurisdictions 78% manually.","probs":["3.2 regulatory breaches per year on average — each triggering costly remediation programs","78% of compliance workflows are manual — team spends 65% of time on evidence gathering","$47M annual penalty exposure with no predictive risk monitoring in place"],"stats":[["3.2/year","Regulatory breaches"],["78%","Manual compliance processes"],["$47M","Annual penalty exposure"]],"m":"Propose AI use cases that automate compliance monitoring, predict breach risk before it materialises, and cut regulatory reporting time by 70%."}]},"PRD":{"label":"PRD","company":"NovaMake Industries","type":"Consumer Goods Manufacturer","color":"#7C3AED","bg":"#3C3489","tagline":"$4.2B in revenue. 12 plants. And margins disappearing one manual step at a time.","ctx":"NovaMake Industries manufactures personal care, home care, and food & beverage products across 12 plants in 8 countries. Despite $4.2B in revenue, EBITDA margins have compressed 6 points in 3 years due to supply chain complexity, quality failures, and a 34% demand forecast error. The COO has declared AI the only lever left to close the gap before the next board review.","stats":[["12 Plants","Across 8 Countries"],["$4.2B","Annual Revenue"],["34%","Forecast Error (MAPE)"],["$420M","Excess Inventory"]],"challenges":["Supply chain single-sourced and blind to disruption — any shock halts production immediately","Demand forecast error of 34% — $420M tied up in excess while 14% stockout kills shelf presence","3 product recalls in 2 years costing $67M with 3-week root cause analysis cycles"],"teams":["Team Alloy","Team Assembly","Team Blueprint","Team Catalyst","Team Circuit","Team Crucible","Team Forged","Team Foundry","Team Fractal","Team Ingot","Team Kiln","Team Manifold","Team Modulus","Team Polymer","Team Precision","Team Reactor","Team Synthesis","Team Tensile","Team Torque","Team Turbine"],"depts":[{"n":"Product Design & Innovation (R&D)","p":"You are NovaMake's R&D team — spending 28 months per launch with a 41% SKU discontinuation rate.","probs":["Consumer insights collected quarterly — by launch, data is 18+ months old and irrelevant","41% of new SKUs discontinued within 18 months of launch due to poor market fit","No AI system predicts which innovations will resonate versus die on shelf"],"stats":[["28 months","Avg NPD cycle"],["41%","SKUs discontinued <18 months"],["$340M","Annual R&D spend"]],"m":"Propose AI use cases that accelerate NPD, predict product-market fit pre-launch, and identify real-time white space in consumer needs."},{"n":"Procurement & Strategic Sourcing","p":"You are NovaMake's Procurement team — single-sourcing 34% of critical materials with zero early warning on supply risk.","probs":["34% of critical materials are single-sourced — any disruption immediately halts production","Commodity price volatility added $94M to material costs in the last 12 months","18-day average PO cycle due to manual approval chains — too slow for emergency procurement"],"stats":[["34%","Single-sourced critical materials"],["$94M","Commodity cost overrun (12 months)"],["18 days","Avg PO cycle time"]],"m":"Propose AI use cases that predict supply disruption risk, automate PO processing, and optimise commodity hedging strategies."},{"n":"Manufacturing & Production Operations","p":"You are NovaMake's Plant Operations team — running at 68% OEE with 13% unplanned downtime eating your targets.","probs":["68% OEE against an 85% target — 17 points of recoverable capacity lost daily","13% of downtime is unplanned — equipment failures AI could predict before they occur","Line changeovers average 4.8 hours — tribal knowledge, no digital capture"],"stats":[["68%","Current OEE (target: 85%)"],["13%","Unplanned downtime"],["4.8 hrs","Avg changeover time"]],"m":"Propose AI use cases that predict equipment failure, optimise changeover sequencing, and digitise operator knowledge into real-time assist."},{"n":"Quality Assurance & Compliance","p":"You are NovaMake's QA team — performing 91 manual checkpoints per batch and still missing issues that reach consumers.","probs":["Consumer complaint rate of 4.2% despite 91 manual QC checkpoints per production batch","3 product recalls in 2 years costing $67M — root cause analysis takes 3+ weeks","Batch traceability is manual and fragmented across 7 disconnected systems"],"stats":[["4.2%","Consumer complaint rate"],["$67M","Recall exposure (2 years)"],["91","Manual QC checkpoints/batch"]],"m":"Propose AI use cases that predict quality failures before packaging, automate batch traceability end to end, and cut complaint rates by 60%."},{"n":"Demand Planning & S&OP","p":"You are NovaMake's Demand team — running a spreadsheet-based S&OP process with a 34% forecast error.","probs":["34% MAPE — more than double the 15% industry benchmark","$420M tied up in excess inventory while 14% stockout rate costs shelf space and retailer fines","3-week S&OP cycle relies on bottom-up spreadsheet forecasts — too slow to react"],"stats":[["34%","Forecast error (MAPE)"],["$420M","Excess inventory tied up"],["14%","Stockout rate"]],"m":"Propose AI use cases that reduce forecast error below 12%, synchronise demand signals across channels, and make S&OP a live daily process."},{"n":"Sales & Trade Marketing","p":"You are NovaMake's Sales team — spending $180M on trade promotions where 42% underperform against plan.","probs":["42% of trade promotions underperform — post-event analysis happens 6 weeks after spend is committed","Sales reps spend 58% of time on admin rather than selling","No predictive ROI model exists before promotion investment is approved"],"stats":[["$180M","Annual trade spend"],["42%","Promotions underperforming"],["58%","Time on admin vs. selling"]],"m":"Propose AI use cases that predict promotion ROI before spend is committed, automate sales reporting, and identify optimal channel/product/timing combinations."},{"n":"Customer Success & Key Accounts","p":"You are NovaMake's Key Account team — losing 8.2% of retailer relationships annually and finding out too late.","probs":["8.2% annual retailer churn — mostly preventable if identified 90+ days earlier","Account managers identify at-risk relationships through gut feel rather than data","Issue resolution averages 34 days due to no cross-functional visibility"],"stats":[["8.2%","Annual retailer churn"],["11%","Accounts currently at risk"],["34 days","Avg issue resolution cycle"]],"m":"Propose AI use cases that flag at-risk accounts 90+ days early, automate cross-functional issue tracking, and personalise account engagement at scale."},{"n":"Finance, Cost & P&L Management","p":"You are NovaMake's Finance team — taking 21 days to close the month while $340M in cost overruns go undetected.","probs":["$340M in controllable cost overruns last year — undetected until quarter-end","21-day month-end close — commercial decisions made on outdated financials","64% of financial processes involve manual extraction across SAP, spreadsheets, and local ERPs"],"stats":[["$340M","Controllable cost overruns"],["21 days","Month-end close cycle"],["64%","Manual financial processes"]],"m":"Propose AI use cases that compress month-end close to 5 days, alert on cost variances in real time, and automate financial consolidation."},{"n":"Logistics, Warehouse & Last-Mile","p":"You are NovaMake's Logistics team — missing 18% of OTIF commitments and running paper-based warehouses at 7 of 12 DCs.","probs":["18% OTIF failure rate — costing shelf space and triggering retailer penalty fines","92-hour order-to-delivery cycle — 40% longer than the fastest competitors","Paper-based picking at 7 DCs drives a 12% pick error rate"],"stats":[["18%","OTIF failure rate"],["92 hrs","Order-to-delivery cycle"],["12%","Pick error rate (paper DCs)"]],"m":"Propose AI use cases that predict delivery failures before they occur, automate warehouse picking, and dynamically optimise last-mile routing."},{"n":"Sustainability, ESG & Regulatory","p":"You are NovaMake's ESG team — off-track on 38% of 2030 commitments with $142M in carbon credit liability.","probs":["38% of 2030 ESG commitments are off-track — board visibility is quarterly, not real-time","34% of Tier 2 suppliers are non-compliant — discovered only during annual audits","$142M in forward carbon credit liabilities with no dynamic exposure model"],"stats":[["38%","ESG targets off-track"],["$142M","Carbon credit liability"],["34%","Tier 2 suppliers non-compliant"]],"m":"Propose AI use cases that monitor supplier ESG risk in real time, predict carbon exposure, and automate ESG reporting across all frameworks."}]},"FS":{"label":"FS","company":"ClearVault Financial","type":"Commercial & Retail Bank","color":"#0EA5E9","bg":"#0C447C","tagline":"$89B in assets. $340M in annual fraud losses. And onboarding slower than a 2012 fintech.","ctx":"ClearVault Financial is a mid-tier commercial and retail bank operating across 14 markets with $89B in assets. Digital transformation is 3 years behind schedule, annual fraud losses have reached $340M, and their loan approval cycle is twice the industry average. Regulators are watching closely after 4 compliance findings in 12 months. The new CTO has 18 months to demonstrate measurable AI-driven progress.","stats":[["$89B","Total Assets"],["$340M","Annual Fraud Losses"],["21 days","SME Loan Approval Cycle"],["NPS 24","vs Industry Avg 52"]],"challenges":["Fraud losses of $340M annually with a 91% false positive rate blocking legitimate customers","21-day credit decision cycle — fintech competitors approve the same loans in 48 hours","44% of digital onboarding applications abandoned before completion due to friction"],"teams":["Team Accrual","Team Arbitrage","Team Benchmark","Team Capital","Team Collateral","Team Covenant","Team Derivative","Team Equity","Team Escrow","Team Ledger","Team Leverage","Team Liquidity","Team Margin","Team Maturity","Team Quantum","Team Reserve","Team Solvency","Team Tranche","Team Vault","Team Yield"],"depts":[{"n":"Retail Banking & Customer Onboarding","p":"You are ClearVault's Retail team — losing 44% of digital applicants before they become customers.","probs":["44% of digital onboarding applications abandoned due to document friction and verification delays","KYC takes 6.8 days on average — fintech competitors complete the same process in under 4 minutes","28% of submissions require manual re-work due to incomplete or incorrectly uploaded documents"],"stats":[["44%","Digital onboarding drop-off"],["6.8 days","Avg KYC completion"],["28%","Document re-work rate"]],"m":"Propose AI use cases that reduce onboarding drop-off below 10%, automate KYC processing, and enable sub-5-minute account activation."},{"n":"Corporate & SME Lending","p":"You are ClearVault's Lending team — running a 21-day credit cycle while the market expects 48 hours.","probs":["21-day credit decision cycle for SME loans — industry best practice is now 48 hours","Credit analysts manually spread financial statements — consuming 40% of their available capacity","18% SME loan default rate suggests both pricing and risk assessment need fundamental rework"],"stats":[["21 days","SME credit decision cycle"],["40%","Analyst time on manual spreading"],["18%","SME loan default rate"]],"m":"Propose AI use cases that cut credit decision time to under 48 hours, automate financial analysis, and improve default prediction accuracy."},{"n":"Risk, Credit & Underwriting","p":"You are ClearVault's Risk team — running overnight VaR calculations while intraday exposure is completely invisible.","probs":["Credit models are 23% less accurate than industry benchmarks — systematically mispricing risk","Risk reporting is 67% manual — the CRO cannot get a real-time portfolio view at any point","Climate risk has not been incorporated into any lending decision model despite regulatory pressure"],"stats":[["23%","Model accuracy gap vs peers"],["$890M","Value at Risk exposure"],["67%","Manual risk reporting"]],"m":"Propose AI use cases that close the model accuracy gap, enable real-time risk reporting, and integrate climate risk into credit assessment."},{"n":"Fraud Detection & Financial Crime","p":"You are ClearVault's Fraud team — losing $340M annually while blocking 340,000 legitimate transactions a month.","probs":["$340M annual fraud losses — 62% preventable with better real-time transaction intelligence","91% false positive rate blocking 340,000 legitimate transactions monthly, destroying trust","AML investigations average 18 days due to manual case management across 7 disconnected systems"],"stats":[["$340M","Annual fraud losses"],["91%","False positive rate"],["18 days","Avg AML investigation"]],"m":"Propose AI use cases that reduce fraud losses by 50%, slash false positive rates, and compress AML investigations to under 3 days."},{"n":"Compliance & Regulatory Reporting","p":"You are ClearVault's Compliance team — spending 340 FTE hours a month on manual reporting after 4 regulatory findings.","probs":["4 regulatory findings in 12 months — each triggering a costly remediation programme","340 FTE hours per month consumed by manual data extraction for regulatory reports","Regulatory change tracking done via email newsletters and spreadsheets — zero automation"],"stats":[["4","Regulatory findings (12 months)"],["340 FTE hrs","Monthly manual reporting burden"],["$78M","Penalty exposure"]],"m":"Propose AI use cases that automate regulatory reporting, predict compliance risk before it becomes a finding, and monitor real-time regulatory changes."},{"n":"Payments & Transaction Banking","p":"You are ClearVault's Payments team — failing 4.2% of transactions and holding $140M in exception queues.","probs":["4.2% payment failure rate — industry standard is 0.5% — destroying corporate client trust","$140M in payments held in exception queues at any given moment across the enterprise","78% of payment exceptions resolved manually — too slow for same-day clearing requirements"],"stats":[["4.2%","Payment failure rate"],["$140M","Stuck funds in queues"],["78%","Exceptions resolved manually"]],"m":"Propose AI use cases that reduce payment failures below 0.3%, automate exception resolution, and enable real-time payment intelligence."},{"n":"Digital Banking & Technology","p":"You are ClearVault's Digital team — shipping releases every 18 months while the competition ships every 2 weeks.","probs":["Mobile app NPS of 24 vs industry average of 52 — digital experience is fundamentally broken","App releases every 18 months on a waterfall model — 70% of tech capacity consumed by maintenance","A major competitor launched 12 new features in the time it took ClearVault to release once"],"stats":[["NPS 24","App NPS (industry avg: 52)"],["18 months","Average release cadence"],["70%","IT budget on maintenance"]],"m":"Propose AI use cases that improve digital product velocity, personalise the app experience, and shift maintenance burden to AI-assisted operations."},{"n":"Investment & Wealth Management","p":"You are ClearVault's Wealth team — leaving $4.8B of AUM uncontacted for over 90 days.","probs":["34% of wealth clients ($4.8B AUM) not contacted by a RM in 90+ days","Advisors spend 60% of their time preparing review documents rather than advising clients","22% portfolio review coverage gap — high-value clients are falling through the cracks"],"stats":[["$4.8B","AUM at attrition risk"],["60%","Advisor time on preparation"],["22%","Portfolio review gap"]],"m":"Propose AI use cases that automate portfolio briefing, identify at-risk wealth clients early, and enable RMs to serve 3× more clients."},{"n":"Finance, Treasury & ALM","p":"You are ClearVault's Treasury team — compressing NIM for 3 years with a 23-day balance sheet close.","probs":["NIM compressed 4.2% over 3 years — pricing decisions not responding to market signals fast enough","Balance sheet close takes 23 days across 14 legal entities due to manual reconciliation","$340M in liquidity over-collateralised because intraday cash positions are completely invisible"],"stats":[["4.2%","NIM compression (3 years)"],["23 days","Balance sheet close"],["$340M","Over-collateralised liquidity"]],"m":"Propose AI use cases that optimise NIM through dynamic pricing, compress balance sheet close to 3 days, and provide real-time treasury intelligence."},{"n":"Branch Operations & Service Delivery","p":"You are ClearVault's Branch team — spending $4,200 per transactional visit while NPS falls 18 points.","probs":["34% of branch visits are transactions that should be digital — each costing $4,200 to service","Branch NPS fell 18 points in 3 years as wait times increased and advisory quality dropped","Staff spend 45% of time on routine queries — no capacity for complex advisory conversations"],"stats":[["$4,200","Cost per branch transaction"],["−18 pts","NPS decline over 3 years"],["45%","Staff time on routine queries"]],"m":"Propose AI use cases that migrate transactional traffic to digital, free branch staff for complex advisory, and lift branch NPS by 20 points."}]},"RES":{"label":"RES","company":"VoltEdge Energy","type":"Vertically Integrated Electric Utility","color":"#F59E0B","bg":"#633806","tagline":"4.2 million customers. 42,000km of grid. And 68% of maintenance budget spent on emergencies.","ctx":"VoltEdge Energy serves 4.2M customers across a deregulated market, owning generation assets, a 42,000km transmission grid, and retail energy services. Rising renewable integration (48% of portfolio) and aging infrastructure are compounding operational pressures. Last year, $340M in penalties and lost generation came from aging asset failures — and the regulator has warned of licence conditions if reliability metrics do not improve within 12 months.","stats":[["4.2M","Customers Served"],["42,000km","Transmission Grid"],["48%","Renewable Portfolio"],["$340M","Penalty & Loss Exposure"]],"challenges":["68% of maintenance is reactive — aging assets failing with 47-minute mean time to detect","Grid operations 94% human-dependent — 4.1 manual interventions per day and growing","$180M in non-technical losses (energy theft + billing errors) going largely undetected"],"teams":["Team Ampere","Team Capacitor","Team Conductor","Team Dynamo","Team Electrode","Team Farad","Team Flux","Team Grid","Team Hertz","Team Inverter","Team Joule","Team Kilowatt","Team Megawatt","Team Ohm","Team Photon","Team Resonance","Team Surge","Team Transformer","Team Voltage","Team Wattage"],"depts":[{"n":"Asset Management & Generation","p":"You are VoltEdge's Asset Management team — watching 24% of generation assets operate past their design life.","probs":["24% of generation and transmission assets are beyond design life — risk is accelerating","68% of maintenance activity is reactive — faults discovered after failure, not before it","$1.2B annual maintenance budget consumed by emergency repairs rather than planned upgrades"],"stats":[["24%","Assets past replacement threshold"],["68%","Reactive maintenance ratio"],["$1.2B","Annual maintenance cost"]],"m":"Propose AI use cases that shift maintenance from reactive to predictive, risk-score capital replacement, and reduce emergency repair costs by 40%."},{"n":"Grid Operations & Control Center","p":"You are VoltEdge's Grid Ops team — making 94% of grid decisions by human judgment with 4.1 interventions per day.","probs":["4.1 grid events per day require manual operator intervention — cognitive overload is growing","94% of grid switching decisions fully human-dependent with no AI decision support whatsoever","As renewables reach 48%, intermittency is making manual grid balancing exponentially more complex"],"stats":[["4.1","Manual grid interventions/day"],["94%","Human-dependent decisions"],["23 min","Mean time to restore per event"]],"m":"Propose AI use cases that provide real-time grid decision support, automate routine switching operations, and manage renewable intermittency."},{"n":"Field Service & Maintenance","p":"You are VoltEdge's Field Service team — fixing faults on the first visit only 41% of the time at $1,890 per truck roll.","probs":["41% first-time fix rate — 2.3 dispatches needed per fault resolution on average","Technicians arrive without real-time asset condition data, fault history, or predicted failure modes","At $1,890 per visit, repeat dispatches consume $280M annually across the field operation"],"stats":[["41%","First-time fix rate"],["2.3","Avg dispatches per fault"],["$1,890","Cost per field visit"]],"m":"Propose AI use cases that arm technicians with real-time asset intelligence, predict required parts, and raise first-time fix rate above 80%."},{"n":"Energy Trading & Commercial Operations","p":"You are VoltEdge's Trading team — using 14-hour-old price forecasts in an intraday market, losing $78M per year.","probs":["$78M annual trading losses directly attributable to a 14-hour price forecast lag","34% of customer contracts priced suboptimally due to poor demand forecasting accuracy","No real-time market intelligence — traders making multi-million dollar decisions on yesterday's data"],"stats":[["$78M","Annual trading losses"],["34%","Contracts priced suboptimally"],["14 hrs","Price curve lag"]],"m":"Propose AI use cases that provide real-time energy price forecasting, optimise contract pricing dynamically, and improve trading P&L."},{"n":"Metering, Smart Grid & AMI","p":"You are VoltEdge's Smart Metering team — sitting on 1.8M smart meters but losing $180M annually to non-technical losses.","probs":["23% of 1.8M smart meters have data gaps due to communication failures — billing is estimated","$180M in non-technical losses (theft + billing errors) largely undetected until physical audit","15-minute interval AMI data not used beyond basic billing — enormous untapped commercial value"],"stats":[["1.8M","Smart meters deployed"],["23%","Meter data gap rate"],["$180M","Non-technical loss (NTL) annually"]],"m":"Propose AI use cases that detect NTL in near real time, predict meter failures before data gaps form, and unlock the value of AMI interval data."},{"n":"Customer Service & Billing","p":"You are VoltEdge's Customer Service team — spending 4.8 days resolving billing disputes about bills that should never have been wrong.","probs":["67% of inbound contacts are billing-related — the highest single driver of customer effort and cost","4.8-day average billing dispute resolution due to manual cross-referencing of meter reads and tariffs","$94M written off annually in billing adjustments and credit notes — a direct bottom-line impact"],"stats":[["67%","Contacts are billing-related"],["4.8 days","Avg dispute resolution"],["$94M","Annual write-offs"]],"m":"Propose AI use cases that resolve billing disputes autonomously within 24 hours, predict anomalies before statements issue, and reduce write-offs by 60%."},{"n":"Regulatory Compliance & Environmental","p":"You are VoltEdge's Compliance team — managing 14 reporting frameworks manually after 3 enforcement actions.","probs":["3 regulatory enforcement actions in 24 months — each triggering costly remediation programmes","78% manual environmental reporting across 14 regulatory frameworks — team is at capacity","No early warning system for environmental incidents before they become formally reportable"],"stats":[["3","Enforcement actions (24 months)"],["78%","Manual environmental reporting"],["$67M","Annual compliance cost"]],"m":"Propose AI use cases that automate environmental monitoring and reporting, predict regulatory risk, and reduce compliance cost by 35%."},{"n":"Procurement & Supply Chain","p":"You are VoltEdge's Procurement team — single-sourcing 34% of critical grid components with 12-month lead times.","probs":["34% of critical components (transformers, switchgear) single-sourced with 12-month lead times","Supply disruptions have already caused $340M in grid upgrade project delays this programme","28-day sourcing cycle is too slow for emergency procurement — grid reliability directly at risk"],"stats":[["$1.1B","Annual procurement spend"],["34%","Single-sourced critical components"],["28 days","Avg sourcing cycle"]],"m":"Propose AI use cases that predict component supply risk 6+ months ahead, automate emergency procurement, and reduce single-source dependency."},{"n":"Safety, Emergency & Crisis Management","p":"You are VoltEdge's Safety team — recording 12 safety incidents per month against a benchmark of 4.","probs":["12 recordable safety incidents per month — 3× above the industry benchmark of 4 per month","Safety inspections are calendar-based — high-risk assets inspected same frequency as low-risk ones","47-minute average emergency response time — critical assets vulnerable during that entire window"],"stats":[["12/month","Safety incidents (benchmark: 4)"],["47 min","Avg emergency response time"],["$89M","Annual incident cost"]],"m":"Propose AI use cases that predict high-risk safety conditions, optimise emergency response routing, and shift to AI-prioritised risk-based inspection scheduling."},{"n":"Digital Innovation & Enterprise IT","p":"You are VoltEdge's Digital team — running 34 pilots with no scale plan and 71% of IT budget on legacy maintenance.","probs":["34 active digital pilots simultaneously — 29 have no clear path to scale or enterprise adoption","IT budget is 71% consumed by legacy system maintenance — leaving only 29% for innovation","87% OT/IT integration gap — operational grid data invisible to commercial and customer-facing systems"],"stats":[["34","Digital pilots (29 unscalable)"],["71%","IT budget on maintenance"],["87%","OT/IT integration gap"]],"m":"Propose AI use cases that integrate OT and IT data at enterprise scale, prioritise pilots by value, and reduce the IT maintenance ratio to 50%."}]},"HPS":{"label":"H&PS","company":"LifeForge Sciences","type":"Specialty Pharma & Digital Health","color":"#10B981","bg":"#173404","tagline":"23 compounds in pipeline. 4 commercial products. And a batch rejection rate twice the industry benchmark.","ctx":"LifeForge Sciences is a specialty pharmaceutical and digital health company with 23 active pipeline compounds, 4 commercial products, and a growing patient services division. They are under FDA scrutiny after 3 Complete Response Letters in 3 years, facing rising clinical trial costs (+28% in 24 months), and commercial underperformance on their newest product at only 14% of forecast uptake at 18 months post-launch.","stats":[["23","Pipeline Compounds"],["91%","Compound Attrition (pre-Phase II)"],["$2.1B","Annual R&D Spend"],["8.3%","Batch Rejection Rate"]],"challenges":["91% of compounds fail before Phase II — $2.1B R&D spend with dangerously thin pipeline survival","3 FDA Complete Response Letters in 3 years — each costing 18 months and $78M in remediation","Newest commercial product at 14% of forecast uptake — commercial model fundamentally broken"],"teams":["Team Allele","Team Antibody","Team Axon","Team Cortex","Team Cytokine","Team Enzyme","Team Epitope","Team Genome","Team Helix","Team Kinase","Team Ligand","Team Morpheme","Team Nucleus","Team Peptide","Team Plasmid","Team Prion","Team Receptor","Team Sequence","Team Synapse","Team Telomere"],"depts":[{"n":"Research, Discovery & Translational Science","p":"You are LifeForge's R&D team — investing $2.1B annually with only 9% of compounds surviving to Phase II.","probs":["Target identification relies on literature reviews taking 18 months — missing 40% of relevant evidence","91% compound attrition before Phase II — the development pipeline is leaking severely at the source","No AI-assisted molecular screening in place — selection still relies entirely on manual expert review"],"stats":[["$2.1B","Annual R&D spend"],["91%","Attrition rate pre-Phase II"],["14 years","Avg drug-to-market timeline"]],"m":"Propose AI use cases that accelerate target identification, predict compound viability earlier, and reduce pre-Phase II attrition by 30%."},{"n":"Clinical Operations & Trial Management","p":"You are LifeForge's Clinical Ops team — running trials that overrun by 22 months with a 34% patient dropout rate.","probs":["34% patient dropout rate — nearly double the 18% industry average, adding significant cost and delay","Average trial duration overruns by 22 months against protocol at $48,000 cost per enrolled patient","Site performance varies 4× between best and worst sites with no predictive visibility into underperformers"],"stats":[["34%","Patient dropout rate"],["$48K","Cost per enrolled patient"],["22 months","Avg trial duration overrun"]],"m":"Propose AI use cases that predict patient dropout before it occurs, identify optimal trial sites, and automate protocol deviation detection."},{"n":"Regulatory Affairs & Market Authorization","p":"You are LifeForge's Regulatory team — spending 14 months preparing submissions that receive FDA rejection letters.","probs":["3 FDA Complete Response Letters in 3 years — each delaying launch 18+ months and costing $78M","Regulatory dossier preparation takes 14 months — team spends 60% of time on document compilation","Regulatory intelligence tracking is manual — done through email subscriptions with no systematic monitoring"],"stats":[["3","FDA CLRs (3 years)"],["14 months","Avg dossier preparation"],["$78M","Avg remediation cost per CLR"]],"m":"Propose AI use cases that automate dossier assembly, predict submission gaps before FDA review, and monitor real-time regulatory intelligence across 40+ jurisdictions."},{"n":"Manufacturing, Quality & GMP Compliance","p":"You are LifeForge's Manufacturing team — rejecting 8.3% of batches and taking 28 days to find out why.","probs":["8.3% batch rejection rate — double the 4% industry benchmark — direct revenue loss every cycle","94 manual GMP checkpoints per batch create a quality bottleneck that delays batch release by 12+ days","Root cause analysis for rejected batches takes 28 days — records span 7 disconnected systems"],"stats":[["8.3%","Batch rejection rate"],["12+ days","Batch release delay"],["$340M","Annual batch loss exposure"]],"m":"Propose AI use cases that predict batch deviations before rejection, automate GMP documentation, and reduce batch release from 12 days to 24 hours."},{"n":"Medical Affairs & Pharmacovigilance","p":"You are LifeForge's PV team — processing adverse events for $94M a year and still missing 34% until too late.","probs":["34% of adverse events identified late — intake is manual across email, fax, and call center channels","4.2-day average adverse event processing — volume growing 28% annually with no capacity increase","$94M spent on PV operations annually, mostly on manual case processing rather than signal detection"],"stats":[["34%","Adverse events identified late"],["4.2 days","Avg AE processing time"],["$94M","Annual PV operations cost"]],"m":"Propose AI use cases that automate AE intake and triage, predict signal emergence before formal detection, and reduce per-case cost by 60%."},{"n":"Commercial, Sales & Market Access","p":"You are LifeForge's Commercial team — sitting at 14% of forecast uptake on your newest product 18 months post-launch.","probs":["Newest product at 14% of forecast uptake — commercial model fundamentally needs reimagining","68% of HCP sales calls not informed by digital engagement data — reps operating completely blind","Market access negotiations lack competitive intelligence — using 6-month-old payer coverage data"],"stats":[["14%","Product uptake vs. forecast"],["$340M","Commercial underperformance"],["68%","Sales calls not data-driven"]],"m":"Propose AI use cases that provide real-time market access intelligence, personalise HCP engagement by digital behaviour, and predict uptake trajectory at launch."},{"n":"Patient Services & Advocacy","p":"You are LifeForge's Patient Services team — losing 42% of enrolled patients from support programs within 90 days.","probs":["42% of patients drop from support programs within 90 days — primarily adherence and side effect issues","Issue resolution takes 23 days because patient services, medical affairs, and commercial use separate systems","$1,240 average patient support cost with no AI triage to focus resources on highest-risk patients"],"stats":[["42%","Patient dropout <90 days"],["23 days","Avg issue resolution"],["$1,240","Avg patient support cost"]],"m":"Propose AI use cases that predict dropout risk and intervene proactively, unify patient data across LifeForge, and cut issue resolution to under 48 hours."},{"n":"Supply Chain & Cold Chain Logistics","p":"You are LifeForge's Supply Chain team — losing $140M annually to cold chain waste and 18% stockout rates.","probs":["$140M annual cold chain waste from temperature excursions and demand forecast errors","18% product stockout rate in emerging markets — directly impacting patient access to medication","Track-and-trace compliance is manual across 34 distribution partners — audit exposure is growing"],"stats":[["$140M","Annual cold chain waste"],["18%","Emerging market stockout rate"],["34","Distribution partners (manual T&T)"]],"m":"Propose AI use cases that predict cold chain risk before excursion, reduce emerging market stockouts, and automate supply chain track and trace."},{"n":"Finance, Portfolio & Business Development","p":"You are LifeForge's Finance team — having overpaid for pipeline assets by 34% on average, taking 21 days to analyse new deals.","probs":["$2.8B in pipeline assets performing 34% below their acquisition valuation on average","BD deal analysis takes 21 days — requires manual comparable research and financial modelling","Portfolio reviews are annual — too infrequent to detect emerging impairment risks in the pipeline"],"stats":[["$2.8B","Capital vs. pipeline performance"],["34%","Avg acquisition over-valuation"],["21 days","Deal analysis cycle"]],"m":"Propose AI use cases that improve acquisition valuation accuracy, compress deal analysis to 48 hours, and enable continuous portfolio health monitoring."},{"n":"Digital Health & Data Science","p":"You are LifeForge's Data Science team — running 14 disconnected health platforms with 67% of clinical data never analysed.","probs":["14 disconnected platforms — patient, clinical, and commercial data completely siloed across the business","67% of clinical trial data never analysed — potential safety and efficacy signals going permanently undetected","Data science team spends 60% of time on data wrangling — only 40% on actual model building"],"stats":[["14","Disconnected health platforms"],["67%","Clinical data never analysed"],["$280M","Digital investment (23% ROI)"]],"m":"Propose AI use cases that unify LifeForge's health data ecosystem, accelerate real-world evidence generation, and free data science capacity for model development."}]}};
+
+// ── Company logos (same as submission form) ──────────────────────────────
+const LOGOS = {
+  CMT: `<svg viewBox="0 0 40 40" width="36" height="36" fill="none"><circle cx="20" cy="24" r="11.5" stroke="white" stroke-width="2.2"/><path d="M8.5 24 Q20 19.5 31.5 24" stroke="white" stroke-width="1.3" fill="none" opacity=".65"/><path d="M8.5 24 Q20 28.5 31.5 24" stroke="white" stroke-width="1.3" fill="none" opacity=".65"/><ellipse cx="20" cy="24" rx="5" ry="11.5" stroke="white" stroke-width="1.3" opacity=".65"/><path d="M14.5 13 Q20 8.5 25.5 13" stroke="white" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M17 10 Q20 7.5 23 10" stroke="white" stroke-width="2" fill="none" stroke-linecap="round"/></svg>`,
+  PRD: `<svg viewBox="0 0 40 40" width="36" height="36" fill="none"><circle cx="20" cy="20" r="8.5" stroke="white" stroke-width="2.2"/><circle cx="20" cy="20" r="3.5" fill="white" opacity=".3" stroke="white" stroke-width="1.5"/><rect x="18.5" y="3.5" width="3" height="7.5" rx="1.5" fill="white"/><rect x="18.5" y="29" width="3" height="7.5" rx="1.5" fill="white"/><rect x="3.5" y="18.5" width="7.5" height="3" rx="1.5" fill="white"/><rect x="29" y="18.5" width="7.5" height="3" rx="1.5" fill="white"/><rect x="9" y="7.8" width="3" height="7.5" rx="1.5" fill="white" transform="rotate(45 10.5 11.5)"/><rect x="28" y="7.8" width="3" height="7.5" rx="1.5" fill="white" transform="rotate(-45 29.5 11.5)"/><rect x="9" y="24.7" width="3" height="7.5" rx="1.5" fill="white" transform="rotate(-45 10.5 28.4)"/><rect x="28" y="24.7" width="3" height="7.5" rx="1.5" fill="white" transform="rotate(45 29.5 28.4)"/></svg>`,
+  FS:  `<svg viewBox="0 0 40 40" width="36" height="36" fill="none"><rect x="5" y="5" width="30" height="30" rx="4" stroke="white" stroke-width="2.2" fill="rgba(255,255,255,.07)"/><circle cx="19" cy="20" r="9" stroke="white" stroke-width="2"/><line x1="19" y1="11" x2="19" y2="29" stroke="white" stroke-width="1.5" opacity=".6"/><line x1="10" y1="20" x2="28" y2="20" stroke="white" stroke-width="1.5" opacity=".6"/><line x1="12.6" y1="13.6" x2="25.4" y2="26.4" stroke="white" stroke-width="1.5" opacity=".6"/><line x1="25.4" y1="13.6" x2="12.6" y2="26.4" stroke="white" stroke-width="1.5" opacity=".6"/><circle cx="19" cy="20" r="3.5" fill="white"/><rect x="29" y="17.5" width="5" height="5" rx="1.5" fill="white" opacity=".85"/><line x1="31.5" y1="17.5" x2="31.5" y2="12" stroke="white" stroke-width="1.8" stroke-linecap="round" opacity=".7"/></svg>`,
+  RES: `<svg viewBox="0 0 40 40" width="36" height="36" fill="none"><path d="M20 3 L35.6 12 L35.6 28 L20 37 L4.4 28 L4.4 12 Z" stroke="white" stroke-width="2.2" fill="rgba(255,255,255,.08)" stroke-linejoin="round"/><path d="M25 8 L14.5 22.5 L21.5 22.5 L15 33 L27.5 18 L20.5 18 Z" fill="white"/></svg>`,
+  HPS: `<svg viewBox="0 0 40 40" width="36" height="36" fill="none"><path d="M15 5 L15 17.5 L6.5 31.5 Q5 35 9 36.5 L31 36.5 Q35 35 33.5 31.5 L25 17.5 L25 5" stroke="white" stroke-width="2.2" fill="rgba(255,255,255,.08)" stroke-linecap="round" stroke-linejoin="round"/><line x1="11.5" y1="5" x2="28.5" y2="5" stroke="white" stroke-width="2.2" stroke-linecap="round"/><circle cx="16" cy="27.5" r="2.5" fill="white" opacity=".8"/><circle cx="24" cy="27.5" r="2.5" fill="white" opacity=".8"/><circle cx="20" cy="22" r="2.5" fill="white" opacity=".8"/><circle cx="13.5" cy="33" r="2.5" fill="white" opacity=".8"/><circle cx="26.5" cy="33" r="2.5" fill="white" opacity=".8"/><line x1="16" y1="27.5" x2="24" y2="27.5" stroke="white" stroke-width="1.5" opacity=".6"/><line x1="16" y1="27.5" x2="20" y2="22" stroke="white" stroke-width="1.5" opacity=".6"/><line x1="24" y1="27.5" x2="20" y2="22" stroke="white" stroke-width="1.5" opacity=".6"/><line x1="16" y1="27.5" x2="13.5" y2="33" stroke="white" stroke-width="1.5" opacity=".6"/><line x1="24" y1="27.5" x2="26.5" y2="33" stroke="white" stroke-width="1.5" opacity=".6"/></svg>`
+};
+
+// ── Tab switching ─────────────────────────────────────────────────────────
+function switchTab(id){
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===id));
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.toggle('active',p.id==='pane-'+id));
+}
+
+// ── Build Client / Problem / Departments content on industry change ────────
+let currentCtxInd = null;
+function buildContextTabs(ind){
+  if(!ind) return;
+  currentCtxInd = ind;
+  // Sync all three selectors
+  ['ctxIndSel','probIndSel','deptsIndSel'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.value=ind;
+  });
+  const d = IND_DATA[ind];
+  if(!d) return;
+  const ac = d.color;
+
+  // ── CLIENT ──────────────────────────────────────────────────────────
+  document.getElementById('clientContent').innerHTML=`
+    <div class="co-header-grid">
+      <div class="co-logo-box" style="background:${ac}">${LOGOS[ind]||''}</div>
+      <div class="co-header-text">
+        <div class="co-company">${d.company}</div>
+        <div class="co-tagline-text">${d.tagline}</div>
+      </div>
+    </div>
+    <div class="co-ctx-label">Opportunity Context</div>
+    <div class="co-ctx">${d.ctx}</div>
+    <div class="co-stats">${d.stats.map(([n,l])=>`<div class="co-stat"><div class="co-stat-n" style="color:${ac}">${n}</div><div class="co-stat-l">${l}</div></div>`).join('')}</div>
+    <div style="font-size:10px;font-weight:700;color:#64748B;letter-spacing:.09em;text-transform:uppercase;margin-bottom:6px;margin-top:12px">Key Challenges</div>
+    <div class="co-challenges">${d.challenges.map(c=>`<div class="co-ch"><div class="ch-dot"></div><span>${c}</span></div>`).join('')}</div>`;
+
+  // ── PROBLEM — all departments as accordion ───────────────────────────
+  document.getElementById('problemContent').innerHTML=d.depts.map((dept,i)=>`
+    <div class="dept-accordion">
+      <div class="dept-acc-hdr" onclick="toggleAcc('acc${ind}${i}')">
+        <span>${i+1}. ${dept.n}</span><span>▾</span>
+      </div>
+      <div class="dept-acc-body" id="acc${ind}${i}">
+        <div class="prob-body">
+          <div><div class="prob-section-label" style="color:${ac}">Your Persona</div>
+          <div class="prob-persona">${dept.p}</div></div>
+          <div><div class="prob-section-label" style="color:#F87171">Department Problems</div>
+          <div class="prob-problems">${dept.probs.map(p=>`<div class="prob-item"><div class="prob-bullet"></div><span>${p}</span></div>`).join('')}</div></div>
+          <div><div class="prob-section-label" style="color:#64748B">Key Metrics</div>
+          <div class="prob-stats">${dept.stats.map(([n,l])=>`<div class="prob-stat"><div class="prob-stat-n" style="color:${ac}">${n}</div><div class="prob-stat-l">${l}</div></div>`).join('')}</div></div>
+          <div><div class="prob-mission" style="border-color:${ac}44;background:${ac}08">
+            <div class="prob-mission-label" style="color:${ac}">🎯 Your Mission</div>${dept.m}
+          </div></div>
+        </div>
+      </div>
+    </div>`).join('');
+
+  // ── DEPARTMENTS — simple numbered list ───────────────────────────────
+  document.getElementById('deptsContent').innerHTML=`
+    <div style="font-size:11px;color:#64748B;margin-bottom:10px;line-height:1.5">
+      💎 <strong style="color:#CBD5E1">Hero Idea tip:</strong> Your Hero Idea must link at least 2 departments. Pick two that share a process, data flow, or customer journey.
+    </div>
+    ${d.depts.map((dept,i)=>`
+    <div class="dept-list-item">
+      <div class="dept-num" style="background:${ac}22;color:${ac}">${i+1}</div>
+      <div class="dept-info">
+        <div class="dept-name">${dept.n}</div>
+        <div class="dept-desc">${dept.p.split('—')[1]?.trim()||dept.p.split('.')[0]}</div>
+      </div>
+    </div>`).join('')}`;
+}
+
+function toggleAcc(id){
+  const el=document.getElementById(id);
+  if(el) el.classList.toggle('open');
+}
+
+// ── Name grid ──────────────────────────────────────────────────────────────
+function buildGrid(){
+  document.getElementById('nameGrid').innerHTML=
+    Array.from({length:12},(_,i)=>
+      `<div class="name-row">
+        <span class="name-num">${i+1}</span>
+        <input class="name-input" id="n${i}" type="text" autocomplete="off" placeholder="Name ${i+1}">
+      </div>`
+    ).join('');
+}
+buildGrid();
+
+// ── Role definitions ───────────────────────────────────────────────────────
+const ROLES=[
+  {id:'dl',roleName:'Delivery Lead',emoji:'🎯',color:'#00D4AA',bg:'rgba(0,212,170,.15)',bullets:['Sets team direction & strategy from minute 0','Activates Power Up Cards — Speed Bonus, Steal, Hero','Directs DevOps to add [HERO] tag before minute 10','Decides which rival ideas to steal and improve']},
+  {id:'do',roleName:'DevOps Engineer',emoji:'⌨️',color:'#D4537E',bg:'rgba(212,83,126,.15)',bullets:['The ONLY member authorised to submit to the form','Applies correct tags on every entry — no tag = no score','Regular: [Team Name] idea · Hero: [Team Name] [HERO] idea','Steal: [Team Name] [STOLEN from Team X] improved idea']},
+  {id:'ar',roleName:'Architect',emoji:'🏗️',color:'#7F77DD',bg:'rgba(127,119,221,.15)',bullets:['Collects raw ideas verbally from all Prompt Engineers','Consolidates and refines ideas into submittable entries','Checks team name tag format before every submission','Removes duplicate or weak entries before DevOps submits']},
+  {id:'dv',roleName:'Developer',emoji:'💡',color:'#F59E0B',bg:'rgba(245,158,11,.15)',bullets:['Identifies the Hero Idea — Agentic AI, 2+ departments','Develops and strengthens the Hero before min 10','Advises: confirmed ×2 · rejected −5 · not submitted −10','Ensures stolen ideas are substantively better']},
+  {id:'pe',roleName:'Prompt Engineer',emoji:'🧠',color:'#38BDF8',bg:'rgba(0,164,211,.15)',bullets:['Primary idea generator — volume and creativity first','Verbally pitches ideas to the Architect only','Does NOT submit to the form directly','Flags Agentic AI ideas with cross-department potential']}
+];
+
+// ── Assign ─────────────────────────────────────────────────────────────────
+function assign(){
+  const names=Array.from({length:12},(_,i)=>{
+    const el=document.getElementById('n'+i);
+    return el?el.value.trim():'';
+  }).filter(Boolean);
+  if(names.length<3){alert('Please enter at least 3 team member names.');return;}
+  const shuffled=[...names].sort(()=>Math.random()-.5);
+  const peCount=Math.max(0,shuffled.length-4);
+  const roleIds=['dl','do','ar','dv',...Array(peCount).fill('pe')];
+  let pesSeen=0;
+  const assignment=shuffled.map((personName,i)=>{
+    const role=ROLES.find(r=>r.id===roleIds[i])||ROLES[4];
+    const isPE=role.id==='pe';
+    const copilot=isPE&&(pesSeen++<3);
+    return{...role,personName,copilot};
+  });
+  renderResult(assignment);
+}
+
+// ── Render ─────────────────────────────────────────────────────────────────
+function renderResult(list){
+  document.getElementById('resultCards').innerHTML=list.map(a=>`
+    <div class="rcard">
+      <div class="rcard-icon" style="background:${a.bg}">${a.emoji}</div>
+      <div class="rcard-body">
+        <div class="rcard-role" style="color:${a.color}">${a.roleName}</div>
+        <div class="rcard-name">${a.personName}</div>
+        <div class="rcard-badges">
+          <span style="font-size:10px;color:#64748B">${a.bullets[0]}</span>
+          ${a.copilot?'<span class="copilot-pill">🤖 Copilot eligible</span>':''}
+        </div>
+      </div>
+    </div>`).join('');
+  document.getElementById('result').classList.add('show');
+  document.getElementById('copyBtn').textContent='Copy for Teams chat';
+  document.getElementById('copyBtn').classList.remove('copied');
+}
+
+// ── Copy to Teams ──────────────────────────────────────────────────────────
+function copyTeams(){
+  const items=document.querySelectorAll('.rcard');
+  if(!items.length)return;
+  let text='🎯 AI Chain Challenge — Role Assignment\n';
+  text+='─────────────────────────\n';
+  items.forEach(item=>{
+    const role=item.querySelector('.rcard-role').textContent;
+    const name=item.querySelector('.rcard-name').textContent;
+    const pill=item.querySelector('.copilot-pill');
+    text+=`${role}: ${name}${pill?' 🤖 (Copilot eligible)':''}\n`;
+  });
+  text+='\n⚠️ Only Copilot-eligible Prompt Engineers may use Copilot.\nNobody uses Claude directly — Claude is the scoring engine.\n\n📋 Submission Form:\nhttps://charles-morales-15.github.io/agenticon2026/AIChainChallenge_SubmissionForm.html';
+  navigator.clipboard.writeText(text)
+    .then(()=>{const btn=document.getElementById('copyBtn');btn.textContent='✓ Copied!';btn.classList.add('copied');setTimeout(()=>{btn.textContent='Copy for Teams chat';btn.classList.remove('copied');},2500);})
+    .catch(()=>alert('Copy failed — please copy manually.'));
+}
+
+// ── Reset ──────────────────────────────────────────────────────────────────
+function resetAll(){
+  Array.from({length:12},(_,i)=>{const el=document.getElementById('n'+i);if(el)el.value='';});
+  const r=document.getElementById('result');
+  if(r)r.classList.remove('show');
+  const rc=document.getElementById('resultCards');
+  if(rc)rc.innerHTML='';
+}
+
+// ── Theme ──────────────────────────────────────────────────────────────────
+(function(){
+  const saved=localStorage.getItem('acc_theme')||'dark';
+  if(saved==='light'){
+    document.body.setAttribute('data-theme','light');
+    document.getElementById('themeIcon').textContent='☾';
+    document.getElementById('themeLabel').textContent='Dark';
+  }
+})();
+function toggleTheme(){
+  const isLight=document.body.getAttribute('data-theme')==='light';
+  if(isLight){document.body.removeAttribute('data-theme');document.getElementById('themeIcon').textContent='☀';document.getElementById('themeLabel').textContent='Light';localStorage.setItem('acc_theme','dark');}
+  else{document.body.setAttribute('data-theme','light');document.getElementById('themeIcon').textContent='☾';document.getElementById('themeLabel').textContent='Dark';localStorage.setItem('acc_theme','light');}
+}
+</script>
+</body>
+</html>
